@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Tổng quan - DATA AP OB{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Tổng quan hệ thống</h1>
+    <p class="text-gray-600 mt-2">Quản lý dữ liệu căn hộ Inspired Space</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">AP Miền Nam</p>
+                <p class="text-3xl font-bold text-gray-800 mt-2">{{ total_mn }}</p>
+                <p class="text-xs text-gray-400 mt-1">records</p>
+            </div>
+            <div class="text-blue-500 text-4xl">🏢</div>
+        </div>
+        <a href="{{ url_for('database', region='mn') }}" class="text-blue-600 text-sm hover:underline mt-4 block">
+            Xem chi tiết →
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">AP Miền Bắc</p>
+                <p class="text-3xl font-bold text-gray-800 mt-2">{{ total_mb }}</p>
+                <p class="text-xs text-gray-400 mt-1">records</p>
+            </div>
+            <div class="text-green-500 text-4xl">🏢</div>
+        </div>
+        <a href="{{ url_for('database', region='mb') }}" class="text-green-600 text-sm hover:underline mt-4 block">
+            Xem chi tiết →
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Tổng cộng</p>
+                <p class="text-3xl font-bold text-gray-800 mt-2">{{ total_mn + total_mb }}</p>
+                <p class="text-xs text-gray-400 mt-1">records</p>
+            </div>
+            <div class="text-purple-500 text-4xl">📊</div>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="text-purple-600 text-sm hover:underline mt-4 block">
+            Xem Dashboard →
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Import/Export</p>
+                <p class="text-3xl font-bold text-gray-800 mt-2">Data</p>
+                <p class="text-xs text-gray-400 mt-1">quản lý file</p>
+            </div>
+            <div class="text-orange-500 text-4xl">📥</div>
+        </div>
+        <a href="{{ url_for('import_export') }}" class="text-orange-600 text-sm hover:underline mt-4 block">
+            Import / Export →
+        </a>
+    </div>
+</div>
+
+<!-- Status Breakdown -->
+<div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Phân bố theo trạng thái</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {% for status, count in status_stats %}
+            {% if status %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-gray-800">{{ count }}</p>
+                <p class="text-sm text-gray-600 mt-1">{{ status }}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Thao tác nhanh</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="{{ url_for('database', region='mn') }}" class="block bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center transition">
+            <span class="text-blue-700 font-medium">Xem AP Miền Nam</span>
+        </a>
+        <a href="{{ url_for('database', region='mb') }}" class="block bg-green-50 hover:bg-green-100 rounded-lg p-4 text-center transition">
+            <span class="text-green-700 font-medium">Xem AP Miền Bắc</span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="block bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center transition">
+            <span class="text-purple-700 font-medium">Xem Dashboard</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

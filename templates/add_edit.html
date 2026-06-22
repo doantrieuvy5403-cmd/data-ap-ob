@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}{% if record %}Sửa record{% else %}Thêm mới{% endif %} - DATA AP OB{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        {% if record %}Sửa record{% else %}Thêm record mới{% endif %}
+    </h1>
+    <p class="text-gray-600 mt-2">AP {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}</p>
+</div>
+
+<form method="POST" class="bg-white rounded-lg shadow p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- STT -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">STT</label>
+            <input type="number" name="stt" value="{{ record.stt if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Team Assignment -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">NS. Phân công</label>
+            <input type="text" name="team_assignment" value="{{ record.team_assignment if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Person in Charge -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">NS. Phụ trách</label>
+            <input type="text" name="person_in_charge" value="{{ record.person_in_charge if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Status -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tiến độ</label>
+            <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Chọn --</option>
+                {% for s in ['Done', 'Deal', 'Plan A', 'Plan B', 'Research', 'Code', 'Fail'] %}
+                    <option value="{{ s }}" {% if record and record.status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Approach Time -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Thời gian tiếp cận</label>
+            <input type="text" name="approach_time" value="{{ record.approach_time if record else '' }}"
+                   placeholder="VD: T12/2025"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- City -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">TP/Tỉnh</label>
+            <input type="text" name="city" value="{{ record.city if record else '' }}"
+                   placeholder="VD: HCM, HN, ĐN"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Direction -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Hướng</label>
+            <input type="text" name="direction" value="{{ record.direction if record else '' }}"
+                   placeholder="VD: Center, East, West"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Building Name -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tên chung cư</label>
+            <input type="text" name="building_name" value="{{ record.building_name if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- District -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Quận/Khu vực</label>
+            <input type="text" name="district" value="{{ record.district if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Num Blocks -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Số Block</label>
+            <input type="number" name="num_blocks" value="{{ record.num_blocks if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Price Range -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Giá bán</label>
+            <input type="text" name="price_range" value="{{ record.price_range if record else '' }}"
+                   placeholder="VD: 150-300tr/m2"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Infrastructure -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">CSVC</label>
+            <select name="infrastructure" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Chọn --</option>
+                {% for i in ['Premium', 'Standard', 'Basic', 'Substandard'] %}
+                    <option value="{{ i }}" {% if record and record.infrastructure == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Occupancy -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tỷ lệ lấp đầy</label>
+            <select name="occupancy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Chọn --</option>
+                {% for o in ['High', 'Middle', 'Low'] %}
+                    <option value="{{ o }}" {% if record and record.occupancy == o %}selected{% endif %}>{{ o }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Classification -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Phân loại</label>
+            <select name="classification" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Chọn --</option>
+                {% for c in ['A', 'B+', 'B', 'C+', 'C'] %}
+                    <option value="{{ c }}" {% if record and record.classification == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Previous Operator -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Đơn vị cũ</label>
+            <input type="text" name="previous_operator" value="{{ record.previous_operator if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Total Screens -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tổng SL màn hình</label>
+            <input type="number" name="total_screens" value="{{ record.total_screens if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Screens in Elevator -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Số màn trong thang</label>
+            <input type="number" name="screens_in_elevator" value="{{ record.screens_in_elevator if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Screens Outside Elevator -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Số màn ngoài thang</label>
+            <input type="number" name="screens_outside_elevator" value="{{ record.screens_outside_elevator if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- P9000 -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">P9000</label>
+            <input type="number" name="p9000" value="{{ record.p9000 if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- P6000 -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">P6000</label>
+            <input type="number" name="p6000" value="{{ record.p6000 if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Prospect -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Prospect</label>
+            <input type="text" name="prospect" value="{{ record.prospect if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+
+    <!-- Notes (full width) -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+        <textarea name="notes" rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">{{ record.notes if record else '' }}</textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-4 pt-4">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+            {% if record %}Cập nhật{% else %}Thêm mới{% endif %}
+        </button>
+        <a href="{{ url_for('database', region=region.lower()) }}"
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">
+            Hủy
+        </a>
+    </div>
+</form>
+{% endblock %}

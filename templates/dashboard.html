@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - DATA AP OB{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
+    <p class="text-gray-600 mt-2">Thống kê và phân tích dữ liệu</p>
+</div>
+
+<!-- Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Status Distribution -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo trạng thái</h2>
+        <canvas id="statusChart"></canvas>
+    </div>
+
+    <!-- City Distribution -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo thành phố (Top 10)</h2>
+        <canvas id="cityChart"></canvas>
+    </div>
+
+    <!-- Person Workload -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Khối lượng công việc theo người</h2>
+        <canvas id="personChart"></canvas>
+    </div>
+
+    <!-- Infrastructure Quality -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Chất lượng cơ sở vật chất</h2>
+        <canvas id="infraChart"></canvas>
+    </div>
+
+    <!-- Classification -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ</h2>
+        <canvas id="classChart"></canvas>
+    </div>
+
+    <!-- Region vs Status -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">So sánh MN vs MB theo trạng thái</h2>
+        <canvas id="regionStatusChart"></canvas>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Fetch stats from API
+fetch('/api/stats')
+    .then(response => response.json())
+    .then(data => {
+        // Status Distribution (Pie Chart)
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: {
+                labels: data.status.map(s => s.label),
+                datasets: [{
+                    data: data.status.map(s => s.count),
+                    backgroundColor: [
+                        '#10b981', '#3b82f6', '#f59e0b', '#f97316',
+                        '#8b5cf6', '#6b7280', '#ef4444'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // City Distribution (Bar Chart)
+        new Chart(document.getElementById('cityChart'), {
+            type: 'bar',
+            data: {
+                labels: data.city.map(c => c.label),
+                datasets: [{
+                    label: 'Số căn hộ',
+                    data: data.city.map(c => c.count),
+                    backgroundColor: '#3b82f6'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Person Workload (Horizontal Bar)
+        new Chart(document.getElementById('personChart'), {
+            type: 'bar',
+            data: {
+                labels: data.person.map(p => p.label),
+                datasets: [{
+                    label: 'Số căn hộ',
+                    data: data.person.map(p => p.count),
+                    backgroundColor: '#10b981'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true
+            }
+        });
+
+        // Infrastructure (Doughnut)
+        new Chart(document.getElementById('infraChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.infrastructure.map(i => i.label),
+                datasets: [{
+                    data: data.infrastructure.map(i => i.count),
+                    backgroundColor: ['#fbbf24', '#60a5fa', '#f87171', '#a78bfa']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Classification (Bar)
+        new Chart(document.getElementById('classChart'), {
+            type: 'bar',
+            data: {
+                labels: data.classification.map(c => c.label),
+                datasets: [{
+                    label: 'Số căn hộ',
+                    data: data.classification.map(c => c.count),
+                    backgroundColor: '#8b5cf6'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Region vs Status (Stacked Bar)
+        const regions = ['MN', 'MB'];
+        const statuses = [...new Set(data.region_status.map(r => r.status))];
+        const datasets = statuses.map((status, idx) => ({
+            label: status,
+            data: regions.map(region => {
+                const found = data.region_status.find(r => r.region === region && r.status === status);
+                return found ? found.count : 0;
+            }),
+            backgroundColor: [
+                '#10b981', '#3b82f6', '#f59e0b', '#f97316',
+                '#8b5cf6', '#6b7280', '#ef4444'
+            ][idx % 7]
+        }));
+
+        new Chart(document.getElementById('regionStatusChart'), {
+            type: 'bar',
+            data: {
+                labels: regions,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
