@@ -7,7 +7,10 @@ from app import app
 from models import db, ApartmentRecord
 import os
 
-EXCEL_PATH = '/Users/qweasdzxcbm/Downloads/Database_Inspired Space.xlsx'
+# Try local data.xlsx first (for deployment), fallback to original path
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+LOCAL_EXCEL = os.path.join(BASE_DIR, 'data.xlsx')
+EXCEL_PATH = LOCAL_EXCEL if os.path.exists(LOCAL_EXCEL) else '/Users/qweasdzxcbm/Downloads/Database_Inspired Space.xlsx'
 
 # Column names mapped by position (0-indexed)
 COLUMN_NAMES = {
