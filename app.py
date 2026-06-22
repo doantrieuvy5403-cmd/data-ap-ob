@@ -17,9 +17,74 @@ os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
 
 db.init_app(app)
 
-# Create tables
+# Column mapping for seed (by position)
+SEED_COLUMNS = {
+    0: 'stt', 1: 'team_assignment', 2: 'person_in_charge',
+    3: 'status', 4: 'approach_time', 5: 'notes',
+    6: 'city', 7: 'direction', 8: 'building_name', 9: 'district',
+    10: 'num_blocks', 11: 'price_range', 12: 'infrastructure',
+    13: 'occupancy', 14: 'classification', 15: 'previous_operator',
+    16: 'total_screens', 17: 'screens_in_elevator',
+    18: 'screens_outside_elevator', 19: 'p9000', 20: 'p6000', 21: 'prospect',
+}
+INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
+              'screens_outside_elevator', 'p9000', 'p6000']
+
+
+def _auto_seed():
+    """Seed database from data.xlsx if empty."""
+    if ApartmentRecord.query.count() > 0:
+        return
+    data_file = os.path.join(BASE_DIR, 'data.xlsx')
+    if not os.path.exists(data_file):
+        print("Warning: data.xlsx not found, skipping seed")
+        return
+
+    print("Auto-seeding database from data.xlsx...")
+    try:
+        xls = pd.ExcelFile(data_file)
+        sheets = {
+            'Databse AP_MN': ('MN', 11),
+            'Databse AP_MB': ('MB', 12),
+        }
+        for sheet_name, (region, skip) in sheets.items():
+            if sheet_name not in xls.sheet_names:
+                continue
+            df = pd.read_excel(xls, sheet_name=sheet_name, header=None, skiprows=skip)
+            for _, row in df.iterrows():
+                building = row.iloc[8] if len(row) > 8 else None
+                if pd.isna(building) or not building:
+                    continue
+                record = ApartmentRecord(region=region)
+                for col_idx, field in SEED_COLUMNS.items():
+                    if col_idx >= len(row):
+                        continue
+                    val = row.iloc[col_idx]
+                    if pd.isna(val):
+                        continue
+                    if field in INT_FIELDS:
+                        try:
+                            val = int(float(str(val).replace("'", "").replace(",", "")))
+                        except (ValueError, TypeError):
+                            continue
+                    elif field == 'approach_time':
+                        val = val.strftime('%m/%Y') if hasattr(val, 'strftime') else str(val)
+                    else:
+                        val = str(val)
+                    setattr(record, field, val)
+                db.session.add(record)
+            db.session.commit()
+        total = ApartmentRecord.query.count()
+        print(f"Seeded {total} records successfully!")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Seed error: {e}")
+
+
+# Create tables and auto-seed
 with app.app_context():
     db.create_all()
+    _auto_seed()
 
 
 @app.route('/')
