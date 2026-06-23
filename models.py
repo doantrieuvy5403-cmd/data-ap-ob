@@ -79,3 +79,11 @@ class WeeklyGrowth(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint('year', 'week', name='uq_weekly_year_week'),)
+
+
+class AppMeta(db.Model):
+    """Simple key/value store for app state (e.g. seeded data.xlsx hash)."""
+    __tablename__ = "app_meta"
+
+    key = db.Column(db.String(50), primary_key=True)
+    value = db.Column(db.String(255))

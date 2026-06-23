@@ -1,16 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
-from models import db, ApartmentRecord, WeeklyGrowth
+from models import db, ApartmentRecord, WeeklyGrowth, AppMeta
 from datetime import datetime
 import pandas as pd
 import io
 import os
+import hashlib
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'instance', 'database.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
+
+# Use Postgres (Render) when DATABASE_URL is set; fall back to local SQLite.
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # SQLAlchemy needs the postgresql:// scheme (Render gives postgres://)
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'data-ap-ob-secret-key-2026'
 app.config['ADMIN_USERNAME'] = os.environ.get('ADMIN_USERNAME', 'admin')
@@ -133,16 +144,28 @@ def _compute_person_progress():
 
 
 def _auto_seed():
-    """Seed database from data.xlsx if empty."""
-    if ApartmentRecord.query.count() > 0:
-        return
+    """(Re)seed apartment data from data.xlsx when the file changes.
+
+    Only ApartmentRecord is touched here — WeeklyGrowth history is preserved,
+    so weekly growth survives across deploys when using a persistent DB.
+    """
     data_file = os.path.join(BASE_DIR, 'data.xlsx')
     if not os.path.exists(data_file):
         print("Warning: data.xlsx not found, skipping seed")
         return
 
-    print("Auto-seeding database from data.xlsx...")
+    with open(data_file, 'rb') as f:
+        current_hash = hashlib.md5(f.read()).hexdigest()
+    meta = db.session.get(AppMeta, 'data_hash')
+    has_data = ApartmentRecord.query.count() > 0
+    if has_data and meta and meta.value == current_hash:
+        return  # Data unchanged — keep existing records & weekly history
+
+    print("Seeding apartment data from data.xlsx...")
     try:
+        # Refresh apartment records only (weekly_growth untouched)
+        ApartmentRecord.query.delete()
+        db.session.commit()
         xls = pd.ExcelFile(data_file)
         sheets = {
             'Databse AP_MN': ('MN', 11),
@@ -180,6 +203,12 @@ def _auto_seed():
                     setattr(record, field, val)
                 db.session.add(record)
             db.session.commit()
+        # Record the seeded file hash so we don't reseed unchanged data
+        if meta is None:
+            meta = AppMeta(key='data_hash')
+            db.session.add(meta)
+        meta.value = current_hash
+        db.session.commit()
         total = ApartmentRecord.query.count()
         print(f"Seeded {total} records successfully!")
     except Exception as e:
