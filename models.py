@@ -63,3 +63,19 @@ class ApartmentRecord(db.Model):
             "prospect": self.prospect,
             "must_have": self.must_have,
         }
+
+
+class WeeklyGrowth(db.Model):
+    """Weekly snapshot of screen counts per funnel stage (for growth chart)."""
+    __tablename__ = "weekly_growth"
+
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    week = db.Column(db.Integer, nullable=False)
+    plan_b = db.Column(db.Integer, default=0)
+    plan_a = db.Column(db.Integer, default=0)
+    deal = db.Column(db.Integer, default=0)
+    done = db.Column(db.Integer, default=0)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('year', 'week', name='uq_weekly_year_week'),)

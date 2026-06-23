@@ -8,33 +8,16 @@
     <p class="text-gray-600 mt-2">Thống kê và phân tích dữ liệu</p>
 </div>
 
-<!-- KPI Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-    <div class="bg-gradient-to-br from-slate-700 to-slate-900 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-slate-300">Tổng dự án</p>
-        <p id="kpiTotal" class="text-3xl font-bold mt-1">–</p>
-        <p class="text-xs text-slate-300 mt-1"><span id="kpiMN">0</span> MN · <span id="kpiMB">0</span> MB</p>
+<!-- Weekly Growth -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần</h2>
+        <span class="text-xs text-gray-500">Trục tung: số lượng màn hình · Theo dữ liệu tỉ lệ chuyển đổi</span>
     </div>
-    <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-purple-100">Research</p>
-        <p id="kpiResearch" class="text-3xl font-bold mt-1">–</p>
-    </div>
-    <div class="bg-gradient-to-br from-orange-400 to-amber-600 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-amber-50">Plan A + B</p>
-        <p id="kpiPlan" class="text-3xl font-bold mt-1">–</p>
-    </div>
-    <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-blue-100">Deal</p>
-        <p id="kpiDeal" class="text-3xl font-bold mt-1">–</p>
-    </div>
-    <div class="bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-green-100">Done</p>
-        <p id="kpiDone" class="text-3xl font-bold mt-1">–</p>
-    </div>
-    <div class="bg-gradient-to-br from-teal-500 to-cyan-700 text-white rounded-xl shadow p-5">
-        <p class="text-xs uppercase tracking-wide text-cyan-100">Tiến độ chung</p>
-        <p id="kpiProgress" class="text-3xl font-bold mt-1">–</p>
-    </div>
+    <canvas id="weeklyChart" height="90"></canvas>
+    <p id="weeklyHint" class="text-xs text-gray-400 mt-3 hidden">
+        Hiện mới có dữ liệu của tuần này. Mỗi tuần hệ thống sẽ tự ghi nhận thêm 1 điểm để tạo đường tăng trưởng.
+    </p>
 </div>
 
 <!-- Person Workload Table -->
@@ -67,28 +50,10 @@
     </div>
 </div>
 
-<!-- Charts Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo trạng thái</h2>
-        <canvas id="statusChart"></canvas>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo thành phố (Top 10)</h2>
-        <canvas id="cityChart"></canvas>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Chất lượng cơ sở vật chất</h2>
-        <canvas id="infraChart"></canvas>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ</h2>
-        <canvas id="classChart"></canvas>
-    </div>
-    <div class="bg-white rounded-xl shadow p-6 lg:col-span-2">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">So sánh MN vs MB theo trạng thái</h2>
-        <canvas id="regionStatusChart" height="100"></canvas>
-    </div>
+<!-- Classification -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ</h2>
+    <canvas id="classChart" height="90"></canvas>
 </div>
 
 {% endblock %}
@@ -97,12 +62,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
 Chart.register(ChartDataLabels);
-Chart.defaults.set('plugins.datalabels', {
-    color: '#374151',
-    font: { weight: 'bold' }
-});
-
-const PALETTE = ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#8b5cf6', '#6b7280', '#ef4444', '#14b8a6'];
+Chart.defaults.set('plugins.datalabels', { color: '#374151', font: { weight: 'bold' } });
 
 function progressColor(pct) {
     if (pct >= 75) return '#10b981';
@@ -114,19 +74,47 @@ function progressColor(pct) {
 fetch('/api/stats')
     .then(response => response.json())
     .then(data => {
-        // ---- KPI cards ----
-        const s = data.summary;
-        document.getElementById('kpiTotal').textContent = s.total;
-        document.getElementById('kpiMN').textContent = s.total_mn;
-        document.getElementById('kpiMB').textContent = s.total_mb;
-        document.getElementById('kpiResearch').textContent = s.funnel['Research'];
-        document.getElementById('kpiPlan').textContent = s.funnel['Plan A'] + s.funnel['Plan B'];
-        document.getElementById('kpiDeal').textContent = s.funnel['Deal'];
-        document.getElementById('kpiDone').textContent = s.funnel['Done'];
-        document.getElementById('kpiProgress').textContent = s.overall_progress + '%';
+        // ---- Weekly growth line chart ----
+        const wk = data.weekly_growth;
+        if (wk.labels.length <= 1) document.getElementById('weeklyHint').classList.remove('hidden');
+        const lineSeries = [
+            { label: 'Plan B', key: 'plan_b', color: '#f97316' },
+            { label: 'Plan A', key: 'plan_a', color: '#f59e0b' },
+            { label: 'Deal', key: 'deal', color: '#3b82f6' },
+            { label: 'Done', key: 'done', color: '#10b981' },
+        ];
+        new Chart(document.getElementById('weeklyChart'), {
+            type: 'line',
+            data: {
+                labels: wk.labels,
+                datasets: lineSeries.map(s => ({
+                    label: s.label,
+                    data: wk[s.key],
+                    borderColor: s.color,
+                    backgroundColor: s.color,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 2,
+                    fill: false
+                }))
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Số lượng màn hình' } },
+                    x: { title: { display: true, text: 'Tuần' } }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: { align: 'top', anchor: 'end', font: { size: 10, weight: 'bold' } }
+                }
+            }
+        });
 
         // ---- Person workload table ----
-        const stages = data.funnel_stages; // ['Research','Plan B','Plan A','Deal','Done']
+        const stages = data.funnel_stages;
         const tbody = document.getElementById('personTableBody');
         tbody.innerHTML = '';
         const totals = { Research: 0, 'Plan B': 0, 'Plan A': 0, Deal: 0, Done: 0, total: 0 };
@@ -161,59 +149,6 @@ fetch('/api/stats')
             <td class="px-4 py-3 text-center">${totals.total}</td>
             <td class="px-4 py-3"></td>`;
 
-        // ---- Status distribution (Pie) ----
-        new Chart(document.getElementById('statusChart'), {
-            type: 'pie',
-            data: {
-                labels: data.status.map(s => s.label),
-                datasets: [{ data: data.status.map(s => s.count), backgroundColor: PALETTE }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: {
-                        color: '#fff',
-                        formatter: (v, ctx) => {
-                            const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            return v + '\n' + Math.round(v / sum * 100) + '%';
-                        },
-                        textAlign: 'center'
-                    }
-                }
-            }
-        });
-
-        // ---- City distribution (Bar) ----
-        new Chart(document.getElementById('cityChart'), {
-            type: 'bar',
-            data: {
-                labels: data.city.map(c => c.label),
-                datasets: [{ label: 'Số dự án', data: data.city.map(c => c.count), backgroundColor: '#3b82f6' }]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
-            }
-        });
-
-        // ---- Infrastructure (Doughnut) ----
-        new Chart(document.getElementById('infraChart'), {
-            type: 'doughnut',
-            data: {
-                labels: data.infrastructure.map(i => i.label),
-                datasets: [{ data: data.infrastructure.map(i => i.count), backgroundColor: PALETTE }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: { color: '#fff' }
-                }
-            }
-        });
-
         // ---- Classification (Bar) ----
         new Chart(document.getElementById('classChart'), {
             type: 'bar',
@@ -225,35 +160,6 @@ fetch('/api/stats')
                 responsive: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
-            }
-        });
-
-        // ---- Region vs Status (Stacked Bar) ----
-        const regions = ['MN', 'MB'];
-        const statuses = [...new Set(data.region_status.map(r => r.status))];
-        const datasets = statuses.map((status, idx) => ({
-            label: status,
-            data: regions.map(region => {
-                const found = data.region_status.find(r => r.region === region && r.status === status);
-                return found ? found.count : 0;
-            }),
-            backgroundColor: PALETTE[idx % PALETTE.length]
-        }));
-
-        new Chart(document.getElementById('regionStatusChart'), {
-            type: 'bar',
-            data: { labels: regions, datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: {
-                        color: '#fff',
-                        formatter: v => v > 0 ? v : ''
-                    }
-                }
             }
         });
     });

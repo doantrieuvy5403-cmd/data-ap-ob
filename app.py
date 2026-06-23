@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
-from models import db, ApartmentRecord
+from models import db, ApartmentRecord, WeeklyGrowth
 from datetime import datetime
 import pandas as pd
 import io
@@ -419,6 +419,44 @@ def _conversion_table(must_have_only=False, region=None):
     return table
 
 
+def _snapshot_current_week():
+    """Upsert this ISO-week's screen totals per stage into WeeklyGrowth."""
+    now = datetime.now()
+    year, week, _ = now.isocalendar()
+
+    rows = db.session.query(
+        ApartmentRecord.status,
+        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
+    ).filter(ApartmentRecord.status.in_(CONVERSION_STAGES)).group_by(ApartmentRecord.status).all()
+    totals = {s: 0 for s in CONVERSION_STAGES}
+    for status, screens in rows:
+        totals[status] = int(screens or 0)
+
+    snap = WeeklyGrowth.query.filter_by(year=year, week=week).first()
+    if not snap:
+        snap = WeeklyGrowth(year=year, week=week)
+        db.session.add(snap)
+    snap.plan_b = totals['Plan B']
+    snap.plan_a = totals['Plan A']
+    snap.deal = totals['Deal']
+    snap.done = totals['Done']
+    snap.updated_at = now
+    db.session.commit()
+
+
+def _weekly_growth_series():
+    """Ordered weekly series for the growth line chart."""
+    _snapshot_current_week()
+    snaps = WeeklyGrowth.query.order_by(WeeklyGrowth.year, WeeklyGrowth.week).all()
+    return {
+        'labels': [f'Tuần {s.week}' for s in snaps],
+        'plan_b': [s.plan_b for s in snaps],
+        'plan_a': [s.plan_a for s in snaps],
+        'deal': [s.deal for s in snaps],
+        'done': [s.done for s in snaps],
+    }
+
+
 @app.route('/conversion')
 @login_required
 def conversion():
@@ -502,6 +540,7 @@ def api_stats():
             'overall_progress': overall_progress,
         },
         'person_progress': _compute_person_progress(),
+        'weekly_growth': _weekly_growth_series(),
         'funnel_stages': FUNNEL_STAGES,
         'status': [{'label': s[0], 'count': s[1]} for s in status_stats if s[0]],
         'city': [{'label': c[0], 'count': c[1]} for c in city_stats][:10],  # Top 10
