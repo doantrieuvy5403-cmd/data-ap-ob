@@ -245,9 +245,33 @@ def _auto_seed():
         print(f"Seed error: {e}")
 
 
+def _ensure_schema():
+    """Add columns introduced after initial deploy (safe for SQLite & Postgres)."""
+    from sqlalchemy import inspect, text
+    insp = inspect(db.engine)
+    tables = insp.get_table_names()
+
+    def add_col(table, col, ddl, backfill=None):
+        if table not in tables:
+            return
+        existing = {c['name'] for c in insp.get_columns(table)}
+        if col not in existing:
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {ddl}"))
+            if backfill:
+                db.session.execute(text(backfill))
+            db.session.commit()
+
+    add_col('apartment_record', 'category', "category VARCHAR(10)",
+            "UPDATE apartment_record SET category='AP' WHERE category IS NULL")
+    add_col('apartment_record', 'address', "address VARCHAR(255)")
+    add_col('weekly_growth', 'category', "category VARCHAR(10)",
+            "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
+
+
 # Create tables and auto-seed
 with app.app_context():
     db.create_all()
+    _ensure_schema()
     _auto_seed()
 
 
