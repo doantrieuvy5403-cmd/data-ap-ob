@@ -31,16 +31,30 @@
                     <span class="font-medium">🔄 Tỷ Lệ Chuyển Đổi</span>
                 </a>
 
+                {% set cur_cat = request.view_args.get('category') if request.endpoint == 'database' else None %}
+                {% set cur_reg = request.view_args.get('region') if request.endpoint == 'database' else None %}
                 <div class="pt-4 pb-2">
-                    <p class="text-xs text-slate-500 uppercase font-semibold">Database</p>
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Database AP (Căn hộ)</p>
                 </div>
-                <a href="{{ url_for('database', region='mn') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'database' and request.view_args.get('region') == 'mn' %}bg-slate-800{% endif %}">
+                <a href="{{ url_for('database', category='ap', region='mn') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
                     <span class="font-medium">🏢 AP Miền Nam</span>
                 </a>
-                <a href="{{ url_for('database', region='mb') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'database' and request.view_args.get('region') == 'mb' %}bg-slate-800{% endif %}">
+                <a href="{{ url_for('database', category='ap', region='mb') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mb' %}bg-slate-800{% endif %}">
                     <span class="font-medium">🏢 AP Miền Bắc</span>
+                </a>
+
+                <div class="pt-4 pb-2">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Database OB (Văn phòng)</p>
+                </div>
+                <a href="{{ url_for('database', category='ob', region='mn') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">🏬 OB Miền Nam</span>
+                </a>
+                <a href="{{ url_for('database', category='ob', region='mb') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mb' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">🏬 OB Miền Bắc</span>
                 </a>
 
                 <div class="pt-4 pb-2">

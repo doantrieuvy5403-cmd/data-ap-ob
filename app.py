@@ -73,8 +73,8 @@ def logout():
     flash('Đăng xuất thành công', 'success')
     return redirect(url_for('login'))
 
-# Column mapping for seed (by position)
-SEED_COLUMNS = {
+# Column mapping for seed (by position) — Apartment (AP) sheets
+SEED_COLUMNS_AP = {
     0: 'stt', 1: 'team_assignment', 2: 'person_in_charge',
     3: 'status', 4: 'approach_time', 5: 'notes',
     6: 'city', 7: 'direction', 8: 'building_name', 9: 'district',
@@ -83,8 +83,28 @@ SEED_COLUMNS = {
     16: 'total_screens', 17: 'screens_in_elevator',
     18: 'screens_outside_elevator', 19: 'p9000', 20: 'p6000', 21: 'must_have',
 }
+# Office Building (OB) sheets: extra "address" col, blocks shifted, LED/DP-LCD screens
+SEED_COLUMNS_OB = {
+    0: 'stt', 1: 'team_assignment', 2: 'person_in_charge',
+    3: 'status', 4: 'approach_time', 5: 'notes',
+    6: 'city', 7: 'direction', 8: 'building_name', 9: 'district',
+    10: 'address', 11: 'num_blocks', 12: 'price_range', 13: 'infrastructure',
+    14: 'occupancy', 15: 'classification', 16: 'previous_operator',
+    27: 'must_have',
+}
+# For OB, total_screens = TỔNG SL LED (17) + TỔNG SL DP/LCD (22)
+OB_SCREEN_COLS = [17, 22]
+
 INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
+
+# (sheet_name, category, region, skiprows, column_map, screen_sum_cols)
+SEED_SHEETS = [
+    ('Databse AP_MN', 'AP', 'MN', 11, SEED_COLUMNS_AP, None),
+    ('Databse AP_MB', 'AP', 'MB', 12, SEED_COLUMNS_AP, None),
+    ('Databse OB_MN (A,B)', 'OB', 'MN', 13, SEED_COLUMNS_OB, OB_SCREEN_COLS),
+    ('Databse OB_MB (A,B,C)', 'OB', 'MB', 12, SEED_COLUMNS_OB, OB_SCREEN_COLS),
+]
 
 # Dashboard: persons in charge (display name -> matching token in data)
 DASHBOARD_PERSONS = [
@@ -106,19 +126,22 @@ FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
 FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Done': 1.0}
 
 
-def _compute_person_progress():
+def _compute_person_progress(category=None):
     """Per-person project counts across funnel stages + completion %."""
     # Initialize: {display_name: {stage: 0, ...}}
     counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _ in DASHBOARD_PERSONS}
     token_to_disp = {token: disp for disp, token in DASHBOARD_PERSONS}
 
-    rows = db.session.query(
+    q = db.session.query(
         ApartmentRecord.person_in_charge,
         ApartmentRecord.status
     ).filter(
         ApartmentRecord.person_in_charge.isnot(None),
         ApartmentRecord.status.in_(FUNNEL_STAGES)
-    ).all()
+    )
+    if category:
+        q = q.filter(ApartmentRecord.category == category)
+    rows = q.all()
 
     for person, status in rows:
         if not person:
@@ -167,11 +190,7 @@ def _auto_seed():
         ApartmentRecord.query.delete()
         db.session.commit()
         xls = pd.ExcelFile(data_file)
-        sheets = {
-            'Databse AP_MN': ('MN', 11),
-            'Databse AP_MB': ('MB', 12),
-        }
-        for sheet_name, (region, skip) in sheets.items():
+        for sheet_name, category, region, skip, colmap, screen_cols in SEED_SHEETS:
             if sheet_name not in xls.sheet_names:
                 continue
             df = pd.read_excel(xls, sheet_name=sheet_name, header=None, skiprows=skip)
@@ -179,8 +198,8 @@ def _auto_seed():
                 building = row.iloc[8] if len(row) > 8 else None
                 if pd.isna(building) or not building:
                     continue
-                record = ApartmentRecord(region=region)
-                for col_idx, field in SEED_COLUMNS.items():
+                record = ApartmentRecord(category=category, region=region)
+                for col_idx, field in colmap.items():
                     if col_idx >= len(row):
                         continue
                     val = row.iloc[col_idx]
@@ -201,6 +220,16 @@ def _auto_seed():
                     else:
                         val = str(val)
                     setattr(record, field, val)
+                # OB: total_screens = sum of LED + DP/LCD totals
+                if screen_cols:
+                    screens = 0
+                    for sc in screen_cols:
+                        if sc < len(row) and pd.notna(row.iloc[sc]):
+                            try:
+                                screens += int(float(str(row.iloc[sc]).replace("'", "").replace(",", "")))
+                            except (ValueError, TypeError):
+                                pass
+                    record.total_screens = screens
                 db.session.add(record)
             db.session.commit()
         # Record the seeded file hash so we don't reseed unchanged data
@@ -241,17 +270,22 @@ def index():
                          status_stats=status_stats)
 
 
-@app.route('/database/<region>')
+def _valid_cat_region(category, region):
+    return category in ('AP', 'OB') and region in ('MN', 'MB')
+
+
+@app.route('/database/<category>/<region>')
 @login_required
-def database(region):
-    """Table view for AP_MN or AP_MB with search/filter"""
+def database(category, region):
+    """Table view for AP/OB × MN/MB with search/filter"""
+    category = category.upper()
     region = region.upper()
-    if region not in ['MN', 'MB']:
-        flash('Invalid region', 'error')
+    if not _valid_cat_region(category, region):
+        flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
     # Base query
-    query = ApartmentRecord.query.filter_by(region=region)
+    query = ApartmentRecord.query.filter_by(category=category, region=region)
 
     # Search
     search = request.args.get('search', '').strip()
@@ -297,14 +331,16 @@ def database(region):
     per_page = 50
     records = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    # Get filter options
-    statuses = db.session.query(ApartmentRecord.status).filter_by(region=region).distinct().all()
-    persons = db.session.query(ApartmentRecord.person_in_charge).filter_by(region=region).distinct().all()
-    cities = db.session.query(ApartmentRecord.city).filter_by(region=region).distinct().all()
-    classifications = db.session.query(ApartmentRecord.classification).filter_by(region=region).distinct().all()
-    districts = db.session.query(ApartmentRecord.district).filter_by(region=region).distinct().all()
+    # Get filter options (scoped to this category + region)
+    opt = lambda col: db.session.query(col).filter_by(category=category, region=region).distinct().all()
+    statuses = opt(ApartmentRecord.status)
+    persons = opt(ApartmentRecord.person_in_charge)
+    cities = opt(ApartmentRecord.city)
+    classifications = opt(ApartmentRecord.classification)
+    districts = opt(ApartmentRecord.district)
 
     return render_template('database.html',
+                         category=category,
                          region=region,
                          records=records,
                          statuses=[s[0] for s in statuses if s[0]],
@@ -321,17 +357,19 @@ def database(region):
                          current_must_have=must_have)
 
 
-@app.route('/database/<region>/add', methods=['GET', 'POST'])
+@app.route('/database/<category>/<region>/add', methods=['GET', 'POST'])
 @login_required
-def add_record(region):
+def add_record(category, region):
     """Add new record"""
+    category = category.upper()
     region = region.upper()
-    if region not in ['MN', 'MB']:
-        flash('Invalid region', 'error')
+    if not _valid_cat_region(category, region):
+        flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
     if request.method == 'POST':
         record = ApartmentRecord(
+            category=category,
             region=region,
             stt=request.form.get('stt', type=int),
             team_assignment=request.form.get('team_assignment'),
@@ -343,6 +381,7 @@ def add_record(region):
             direction=request.form.get('direction'),
             building_name=request.form.get('building_name'),
             district=request.form.get('district'),
+            address=request.form.get('address'),
             num_blocks=request.form.get('num_blocks', type=int),
             price_range=request.form.get('price_range'),
             infrastructure=request.form.get('infrastructure'),
@@ -354,14 +393,15 @@ def add_record(region):
             screens_outside_elevator=request.form.get('screens_outside_elevator', type=int),
             p9000=request.form.get('p9000', type=int),
             p6000=request.form.get('p6000', type=int),
-            prospect=request.form.get('prospect')
+            prospect=request.form.get('prospect'),
+            must_have=request.form.get('must_have') or None
         )
         db.session.add(record)
         db.session.commit()
         flash('Record added successfully', 'success')
-        return redirect(url_for('database', region=region.lower()))
+        return redirect(url_for('database', category=category.lower(), region=region.lower()))
 
-    return render_template('add_edit.html', region=region, record=None)
+    return render_template('add_edit.html', category=category, region=region, record=None)
 
 
 @app.route('/record/<int:id>/edit', methods=['GET', 'POST'])
@@ -381,6 +421,7 @@ def edit_record(id):
         record.direction = request.form.get('direction')
         record.building_name = request.form.get('building_name')
         record.district = request.form.get('district')
+        record.address = request.form.get('address')
         record.num_blocks = request.form.get('num_blocks', type=int)
         record.price_range = request.form.get('price_range')
         record.infrastructure = request.form.get('infrastructure')
@@ -393,12 +434,13 @@ def edit_record(id):
         record.p9000 = request.form.get('p9000', type=int)
         record.p6000 = request.form.get('p6000', type=int)
         record.prospect = request.form.get('prospect')
+        record.must_have = request.form.get('must_have') or None
 
         db.session.commit()
         flash('Record updated successfully', 'success')
-        return redirect(url_for('database', region=record.region.lower()))
+        return redirect(url_for('database', category=record.category.lower(), region=record.region.lower()))
 
-    return render_template('add_edit.html', region=record.region, record=record)
+    return render_template('add_edit.html', category=record.category, region=record.region, record=record)
 
 
 @app.route('/record/<int:id>/delete', methods=['POST'])
@@ -406,25 +448,27 @@ def edit_record(id):
 def delete_record(id):
     """Delete record"""
     record = ApartmentRecord.query.get_or_404(id)
-    region = record.region
+    category, region = record.category, record.region
     db.session.delete(record)
     db.session.commit()
     flash('Record deleted successfully', 'success')
-    return redirect(url_for('database', region=region.lower()))
+    return redirect(url_for('database', category=category.lower(), region=region.lower()))
 
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
     """Dashboard with charts"""
-    return render_template('dashboard.html')
+    category = request.args.get('category', '').upper()
+    category = category if category in ('AP', 'OB') else ''
+    return render_template('dashboard.html', category=category)
 
 
 # Conversion-rate funnel stages (columns of the two tables)
 CONVERSION_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
 
 
-def _conversion_table(must_have_only=False, region=None):
+def _conversion_table(must_have_only=False, region=None, category=None):
     """Per-stage totals: screens, blocks, building count."""
     q = db.session.query(
         ApartmentRecord.status,
@@ -436,6 +480,8 @@ def _conversion_table(must_have_only=False, region=None):
         q = q.filter(ApartmentRecord.must_have.isnot(None))
     if region:
         q = q.filter(ApartmentRecord.region == region)
+    if category:
+        q = q.filter(ApartmentRecord.category == category)
     q = q.group_by(ApartmentRecord.status)
 
     table = {s: {'screens': 0, 'blocks': 0, 'buildings': 0} for s in CONVERSION_STAGES}
@@ -449,40 +495,64 @@ def _conversion_table(must_have_only=False, region=None):
 
 
 def _snapshot_current_week():
-    """Upsert this ISO-week's screen totals per stage into WeeklyGrowth."""
+    """Upsert this ISO-week's screen totals per stage, for each category."""
     now = datetime.now()
     year, week, _ = now.isocalendar()
 
-    rows = db.session.query(
-        ApartmentRecord.status,
-        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
-    ).filter(ApartmentRecord.status.in_(CONVERSION_STAGES)).group_by(ApartmentRecord.status).all()
-    totals = {s: 0 for s in CONVERSION_STAGES}
-    for status, screens in rows:
-        totals[status] = int(screens or 0)
+    for category in ('AP', 'OB'):
+        rows = db.session.query(
+            ApartmentRecord.status,
+            db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
+        ).filter(
+            ApartmentRecord.status.in_(CONVERSION_STAGES),
+            ApartmentRecord.category == category,
+        ).group_by(ApartmentRecord.status).all()
+        totals = {s: 0 for s in CONVERSION_STAGES}
+        for status, screens in rows:
+            totals[status] = int(screens or 0)
 
-    snap = WeeklyGrowth.query.filter_by(year=year, week=week).first()
-    if not snap:
-        snap = WeeklyGrowth(year=year, week=week)
-        db.session.add(snap)
-    snap.plan_b = totals['Plan B']
-    snap.plan_a = totals['Plan A']
-    snap.deal = totals['Deal']
-    snap.done = totals['Done']
-    snap.updated_at = now
+        snap = WeeklyGrowth.query.filter_by(category=category, year=year, week=week).first()
+        if not snap:
+            snap = WeeklyGrowth(category=category, year=year, week=week)
+            db.session.add(snap)
+        snap.plan_b = totals['Plan B']
+        snap.plan_a = totals['Plan A']
+        snap.deal = totals['Deal']
+        snap.done = totals['Done']
+        snap.updated_at = now
     db.session.commit()
 
 
-def _weekly_growth_series():
-    """Ordered weekly series for the growth line chart."""
+def _weekly_growth_series(category=None):
+    """Ordered weekly series for the growth line chart.
+
+    category None -> sum of AP + OB per week; otherwise the given category.
+    """
     _snapshot_current_week()
-    snaps = WeeklyGrowth.query.order_by(WeeklyGrowth.year, WeeklyGrowth.week).all()
+    q = WeeklyGrowth.query
+    if category:
+        q = q.filter_by(category=category)
+    snaps = q.order_by(WeeklyGrowth.year, WeeklyGrowth.week).all()
+
+    # Aggregate by (year, week) so "All" sums categories into one point
+    buckets = {}
+    order = []
+    for s in snaps:
+        key = (s.year, s.week)
+        if key not in buckets:
+            buckets[key] = {'plan_b': 0, 'plan_a': 0, 'deal': 0, 'done': 0}
+            order.append(key)
+        buckets[key]['plan_b'] += s.plan_b or 0
+        buckets[key]['plan_a'] += s.plan_a or 0
+        buckets[key]['deal'] += s.deal or 0
+        buckets[key]['done'] += s.done or 0
+
     return {
-        'labels': [f'Tuần {s.week}' for s in snaps],
-        'plan_b': [s.plan_b for s in snaps],
-        'plan_a': [s.plan_a for s in snaps],
-        'deal': [s.deal for s in snaps],
-        'done': [s.done for s in snaps],
+        'labels': [f'Tuần {w}' for (_, w) in order],
+        'plan_b': [buckets[k]['plan_b'] for k in order],
+        'plan_a': [buckets[k]['plan_a'] for k in order],
+        'deal': [buckets[k]['deal'] for k in order],
+        'done': [buckets[k]['done'] for k in order],
     }
 
 
@@ -492,14 +562,17 @@ def conversion():
     """Tỷ lệ chuyển đổi: two tables (all vs must-have), updated weekly."""
     region = request.args.get('region', '').upper()
     region = region if region in ('MN', 'MB') else None
+    category = request.args.get('category', '').upper()
+    category = category if category in ('AP', 'OB') else None
 
     now = datetime.now()
     return render_template(
         'conversion.html',
         stages=CONVERSION_STAGES,
-        table_all=_conversion_table(must_have_only=False, region=region),
-        table_mh=_conversion_table(must_have_only=True, region=region),
+        table_all=_conversion_table(must_have_only=False, region=region, category=category),
+        table_mh=_conversion_table(must_have_only=True, region=region, category=category),
         region=region,
+        category=category,
         week=now.isocalendar()[1],
         updated=now.strftime('%d/%m/%Y'),
     )
@@ -509,11 +582,17 @@ def conversion():
 @login_required
 def api_stats():
     """JSON endpoint for dashboard charts"""
+    category = request.args.get('category', '').upper()
+    category = category if category in ('AP', 'OB') else None
+
+    def scoped(query):
+        return query.filter(ApartmentRecord.category == category) if category else query
+
     # Status distribution
-    status_stats = db.session.query(
+    status_stats = scoped(db.session.query(
         ApartmentRecord.status,
         db.func.count(ApartmentRecord.id)
-    ).group_by(ApartmentRecord.status).all()
+    )).group_by(ApartmentRecord.status).all()
 
     # City distribution
     city_stats = db.session.query(
@@ -534,10 +613,10 @@ def api_stats():
     ).filter(ApartmentRecord.infrastructure.isnot(None)).group_by(ApartmentRecord.infrastructure).all()
 
     # Classification distribution
-    class_stats = db.session.query(
+    class_stats = scoped(db.session.query(
         ApartmentRecord.classification,
         db.func.count(ApartmentRecord.id)
-    ).filter(ApartmentRecord.classification.isnot(None)).group_by(ApartmentRecord.classification).all()
+    ).filter(ApartmentRecord.classification.isnot(None))).group_by(ApartmentRecord.classification).all()
 
     # MN vs MB by status
     region_status = db.session.query(
@@ -568,8 +647,8 @@ def api_stats():
             'funnel_total': funnel_total,
             'overall_progress': overall_progress,
         },
-        'person_progress': _compute_person_progress(),
-        'weekly_growth': _weekly_growth_series(),
+        'person_progress': _compute_person_progress(category),
+        'weekly_growth': _weekly_growth_series(category),
         'funnel_stages': FUNNEL_STAGES,
         'status': [{'label': s[0], 'count': s[1]} for s in status_stats if s[0]],
         'city': [{'label': c[0], 'count': c[1]} for c in city_stats][:10],  # Top 10
@@ -580,16 +659,17 @@ def api_stats():
     })
 
 
-@app.route('/export/<region>')
+@app.route('/export/<category>/<region>')
 @login_required
-def export_data(region):
+def export_data(category, region):
     """Export data as Excel"""
+    category = category.upper()
     region = region.upper()
-    if region not in ['MN', 'MB']:
-        flash('Invalid region', 'error')
+    if not _valid_cat_region(category, region):
+        flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
-    records = ApartmentRecord.query.filter_by(region=region).all()
+    records = ApartmentRecord.query.filter_by(category=category, region=region).all()
 
     # Convert to DataFrame
     data = [r.to_dict() for r in records]
@@ -622,28 +702,29 @@ def export_data(region):
         'must_have': 'Must have'
     }
     df = df.rename(columns=column_map)
-    df = df.drop(columns=['id', 'region', 'created_at', 'updated_at'], errors='ignore')
+    df = df.drop(columns=['id', 'category', 'region', 'created_at', 'updated_at'], errors='ignore')
 
     # Save to Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name=f'AP_{region}')
+        df.to_excel(writer, index=False, sheet_name=f'{category}_{region}')
     output.seek(0)
 
-    filename = f'Database_AP_{region}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    filename = f'Database_{category}_{region}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     return send_file(output,
                     as_attachment=True,
                     download_name=filename,
                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-@app.route('/import/<region>', methods=['POST'])
+@app.route('/import/<category>/<region>', methods=['POST'])
 @login_required
-def import_data(region):
+def import_data(category, region):
     """Import data from uploaded Excel/CSV"""
+    category = category.upper()
     region = region.upper()
-    if region not in ['MN', 'MB']:
-        flash('Invalid region', 'error')
+    if not _valid_cat_region(category, region):
+        flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
     if 'file' not in request.files:
@@ -693,7 +774,7 @@ def import_data(region):
         # Add records
         count = 0
         for _, row in df.iterrows():
-            record = ApartmentRecord(region=region)
+            record = ApartmentRecord(category=category, region=region)
             for col in column_map.values():
                 if col in row:
                     value = row[col]
@@ -708,7 +789,7 @@ def import_data(region):
         db.session.rollback()
         flash(f'Error importing file: {str(e)}', 'error')
 
-    return redirect(url_for('database', region=region.lower()))
+    return redirect(url_for('database', category=category.lower(), region=region.lower()))
 
 
 @app.route('/import-export')

@@ -53,8 +53,15 @@
             </span>
         </p>
     </div>
-    <form method="GET" class="flex items-center gap-2">
-        <label class="text-sm font-medium text-gray-700">Khu vực:</label>
+    <form method="GET" class="flex items-center gap-2 flex-wrap">
+        <label class="text-sm font-medium text-gray-700">Loại:</label>
+        <select name="category" onchange="this.form.submit()"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <option value="" {% if not category %}selected{% endif %}>Tất cả (AP + OB)</option>
+            <option value="AP" {% if category == 'AP' %}selected{% endif %}>AP — Căn hộ</option>
+            <option value="OB" {% if category == 'OB' %}selected{% endif %}>OB — Văn phòng</option>
+        </select>
+        <label class="text-sm font-medium text-gray-700 ml-2">Khu vực:</label>
         <select name="region" onchange="this.form.submit()"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
             <option value="" {% if not region %}selected{% endif %}>Tất cả (MN + MB)</option>

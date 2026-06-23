@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Database AP {{ region }} - DATA AP OB{% endblock %}
+{% block title %}Database {{ category }} {{ region }} - DATA AP OB{% endblock %}
 
 {% block content %}
 <div class="mb-6">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-3xl font-bold text-gray-800">
-                Database AP {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}
+                Database {{ category }} ({% if category == 'AP' %}Căn hộ{% else %}Văn phòng{% endif %})
+                — {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}
             </h1>
             <p class="text-gray-600 mt-2">Tổng số: {{ records.total }} records</p>
         </div>
-        <a href="{{ url_for('add_record', region=region.lower()) }}"
+        <a href="{{ url_for('add_record', category=category.lower(), region=region.lower()) }}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
             + Thêm mới
         </a>
@@ -93,7 +94,7 @@
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
                 Lọc
             </button>
-            <a href="{{ url_for('database', region=region.lower()) }}"
+            <a href="{{ url_for('database', category=category.lower(), region=region.lower()) }}"
                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">
                 Xóa bộ lọc
             </a>
@@ -108,7 +109,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên chung cư</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{% if category == 'OB' %}Tên OB{% else %}Tên chung cư{% endif %}</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số Block</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quận</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thành phố</th>
@@ -187,7 +188,7 @@
             </div>
             <div class="flex gap-2">
                 {% if records.has_prev %}
-                    <a href="{{ url_for('database', region=region.lower(), page=records.prev_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
+                    <a href="{{ url_for('database', category=category.lower(), region=region.lower(), page=records.prev_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
                        class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">← Trước</a>
                 {% endif %}
 
@@ -195,13 +196,13 @@
                     {% if page_num == records.page %}
                         <span class="px-3 py-1 bg-blue-600 text-white rounded">{{ page_num }}</span>
                     {% else %}
-                        <a href="{{ url_for('database', region=region.lower(), page=page_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
+                        <a href="{{ url_for('database', category=category.lower(), region=region.lower(), page=page_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
                            class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">{{ page_num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if records.has_next %}
-                    <a href="{{ url_for('database', region=region.lower(), page=records.next_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
+                    <a href="{{ url_for('database', category=category.lower(), region=region.lower(), page=records.next_num, search=search, status=current_status, person=current_person, city=current_city, classification=current_classification, district=current_district, must_have=current_must_have) }}"
                        class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Sau →</a>
                 {% endif %}
             </div>

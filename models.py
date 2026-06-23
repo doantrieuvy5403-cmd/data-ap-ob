@@ -8,6 +8,7 @@ class ApartmentRecord(db.Model):
     __tablename__ = "apartment_record"
 
     id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(10), nullable=False, index=True, default='AP')  # "AP" or "OB"
     region = db.Column(db.String(10), nullable=False, index=True)  # "MN" or "MB"
     stt = db.Column(db.Integer)
     team_assignment = db.Column(db.String(255))
@@ -19,6 +20,7 @@ class ApartmentRecord(db.Model):
     direction = db.Column(db.String(100))
     building_name = db.Column(db.String(255))
     district = db.Column(db.String(100))
+    address = db.Column(db.String(255))  # OB street address
     num_blocks = db.Column(db.Integer)
     price_range = db.Column(db.String(100))
     infrastructure = db.Column(db.String(50))
@@ -38,6 +40,7 @@ class ApartmentRecord(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "category": self.category,
             "region": self.region,
             "stt": self.stt,
             "team_assignment": self.team_assignment,
@@ -49,6 +52,7 @@ class ApartmentRecord(db.Model):
             "direction": self.direction,
             "building_name": self.building_name,
             "district": self.district,
+            "address": self.address,
             "num_blocks": self.num_blocks,
             "price_range": self.price_range,
             "infrastructure": self.infrastructure,
@@ -70,6 +74,7 @@ class WeeklyGrowth(db.Model):
     __tablename__ = "weekly_growth"
 
     id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(10), nullable=False, default='AP')  # "AP" or "OB"
     year = db.Column(db.Integer, nullable=False)
     week = db.Column(db.Integer, nullable=False)
     plan_b = db.Column(db.Integer, default=0)
@@ -78,7 +83,7 @@ class WeeklyGrowth(db.Model):
     done = db.Column(db.Integer, default=0)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    __table_args__ = (db.UniqueConstraint('year', 'week', name='uq_weekly_year_week'),)
+    __table_args__ = (db.UniqueConstraint('category', 'year', 'week', name='uq_weekly_cat_year_week'),)
 
 
 class AppMeta(db.Model):

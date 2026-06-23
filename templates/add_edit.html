@@ -7,7 +7,7 @@
     <h1 class="text-3xl font-bold text-gray-800">
         {% if record %}Sửa record{% else %}Thêm record mới{% endif %}
     </h1>
-    <p class="text-gray-600 mt-2">AP {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}</p>
+    <p class="text-gray-600 mt-2">{{ category }} {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}</p>
 </div>
 
 <form method="POST" class="bg-white rounded-lg shadow p-6 space-y-6">
@@ -192,7 +192,7 @@
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
             {% if record %}Cập nhật{% else %}Thêm mới{% endif %}
         </button>
-        <a href="{{ url_for('database', region=region.lower()) }}"
+        <a href="{{ url_for('database', category=category.lower(), region=region.lower()) }}"
            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">
             Hủy
         </a>

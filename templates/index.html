@@ -19,7 +19,7 @@
             </div>
             <div class="text-blue-500 text-4xl">🏢</div>
         </div>
-        <a href="{{ url_for('database', region='mn') }}" class="text-blue-600 text-sm hover:underline mt-4 block">
+        <a href="{{ url_for('database', category='ap', region='mn') }}" class="text-blue-600 text-sm hover:underline mt-4 block">
             Xem chi tiết →
         </a>
     </div>
@@ -33,7 +33,7 @@
             </div>
             <div class="text-green-500 text-4xl">🏢</div>
         </div>
-        <a href="{{ url_for('database', region='mb') }}" class="text-green-600 text-sm hover:underline mt-4 block">
+        <a href="{{ url_for('database', category='ap', region='mb') }}" class="text-green-600 text-sm hover:underline mt-4 block">
             Xem chi tiết →
         </a>
     </div>
@@ -86,10 +86,10 @@
 <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-bold text-gray-800 mb-4">Thao tác nhanh</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{{ url_for('database', region='mn') }}" class="block bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center transition">
+        <a href="{{ url_for('database', category='ap', region='mn') }}" class="block bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center transition">
             <span class="text-blue-700 font-medium">Xem AP Miền Nam</span>
         </a>
-        <a href="{{ url_for('database', region='mb') }}" class="block bg-green-50 hover:bg-green-100 rounded-lg p-4 text-center transition">
+        <a href="{{ url_for('database', category='ap', region='mb') }}" class="block bg-green-50 hover:bg-green-100 rounded-lg p-4 text-center transition">
             <span class="text-green-700 font-medium">Xem AP Miền Bắc</span>
         </a>
         <a href="{{ url_for('dashboard') }}" class="block bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center transition">
