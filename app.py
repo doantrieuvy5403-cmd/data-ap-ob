@@ -98,6 +98,9 @@ OB_SCREEN_COLS = [17, 22]
 INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
 
+# Bump when the seed logic changes (forces a one-time reseed even if data.xlsx is unchanged)
+SEED_VERSION = '2-ob'
+
 # (sheet_name, category, region, skiprows, column_map, screen_sum_cols)
 SEED_SHEETS = [
     ('Databse AP_MN', 'AP', 'MN', 11, SEED_COLUMNS_AP, None),
@@ -179,11 +182,11 @@ def _auto_seed():
 
     try:
         with open(data_file, 'rb') as f:
-            current_hash = hashlib.md5(f.read()).hexdigest()
+            current_hash = f'{SEED_VERSION}:{hashlib.md5(f.read()).hexdigest()}'
         meta = db.session.get(AppMeta, 'data_hash')
         has_data = ApartmentRecord.query.count() > 0
         if has_data and meta and meta.value == current_hash:
-            return  # Data unchanged — keep existing records & weekly history
+            return  # Data & seed-logic unchanged — keep records & weekly history
 
         print("Seeding apartment data from data.xlsx...")
         # Refresh apartment records only (weekly_growth untouched)
