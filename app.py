@@ -23,17 +23,16 @@ db.init_app(app)
 
 @app.context_processor
 def inject_user():
+    # Public access: always treat as logged in so the UI shows the sidebar.
     return {
-        'logged_in': session.get('logged_in', False),
-        'current_user': session.get('username')
+        'logged_in': True,
+        'current_user': session.get('username') or 'Inspired Space'
     }
 
 def login_required(view):
+    # Login disabled: pass through without any authentication check.
     @wraps(view)
     def wrapped_view(*args, **kwargs):
-        if not session.get('logged_in'):
-            next_url = request.path
-            return redirect(url_for('login', next=next_url))
         return view(*args, **kwargs)
     return wrapped_view
 

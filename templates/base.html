@@ -60,13 +60,7 @@
                         <p class="text-sm text-slate-500">Vui lòng đăng nhập để tiếp tục</p>
                     {% endif %}
                 </div>
-                <div>
-                    {% if logged_in %}
-                        <a href="{{ url_for('logout') }}" class="text-sm text-red-600 hover:text-red-800">Đăng xuất</a>
-                    {% else %}
-                        <a href="{{ url_for('login') }}" class="text-sm text-blue-600 hover:text-blue-800">Đăng nhập</a>
-                    {% endif %}
-                </div>
+                <div></div>
             </header>
 
             <!-- Flash messages -->
