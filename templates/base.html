@@ -26,6 +26,10 @@
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'dashboard' %}bg-slate-800{% endif %}">
                     <span class="font-medium">📊 Dashboard</span>
                 </a>
+                <a href="{{ url_for('conversion') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'conversion' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">🔄 Tỷ Lệ Chuyển Đổi</span>
+                </a>
 
                 <div class="pt-4 pb-2">
                     <p class="text-xs text-slate-500 uppercase font-semibold">Database</p>

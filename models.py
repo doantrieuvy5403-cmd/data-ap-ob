@@ -31,6 +31,7 @@ class ApartmentRecord(db.Model):
     p9000 = db.Column(db.Integer)
     p6000 = db.Column(db.Integer)
     prospect = db.Column(db.String(100))
+    must_have = db.Column(db.String(20), index=True)  # "Must have" or None
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -60,4 +61,5 @@ class ApartmentRecord(db.Model):
             "p9000": self.p9000,
             "p6000": self.p6000,
             "prospect": self.prospect,
+            "must_have": self.must_have,
         }

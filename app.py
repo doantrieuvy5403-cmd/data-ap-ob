@@ -70,7 +70,7 @@ SEED_COLUMNS = {
     10: 'num_blocks', 11: 'price_range', 12: 'infrastructure',
     13: 'occupancy', 14: 'classification', 15: 'previous_operator',
     16: 'total_screens', 17: 'screens_in_elevator',
-    18: 'screens_outside_elevator', 19: 'p9000', 20: 'p6000', 21: 'prospect',
+    18: 'screens_outside_elevator', 19: 'p9000', 20: 'p6000', 21: 'must_have',
 }
 INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
@@ -170,6 +170,11 @@ def _auto_seed():
                             continue
                     elif field == 'approach_time':
                         val = val.strftime('%m/%Y') if hasattr(val, 'strftime') else str(val)
+                    elif field == 'must_have':
+                        # Column holds "Must have " (trailing space) or blank
+                        val = 'Must have' if 'must have' in str(val).strip().lower() else None
+                        if val is None:
+                            continue
                     else:
                         val = str(val)
                     setattr(record, field, val)
@@ -248,6 +253,16 @@ def database(region):
     if classification:
         query = query.filter_by(classification=classification)
 
+    district = request.args.get('district')
+    if district:
+        query = query.filter_by(district=district)
+
+    must_have = request.args.get('must_have')
+    if must_have == '1':
+        query = query.filter(ApartmentRecord.must_have.isnot(None))
+    elif must_have == '0':
+        query = query.filter(ApartmentRecord.must_have.is_(None))
+
     # Pagination
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -258,6 +273,7 @@ def database(region):
     persons = db.session.query(ApartmentRecord.person_in_charge).filter_by(region=region).distinct().all()
     cities = db.session.query(ApartmentRecord.city).filter_by(region=region).distinct().all()
     classifications = db.session.query(ApartmentRecord.classification).filter_by(region=region).distinct().all()
+    districts = db.session.query(ApartmentRecord.district).filter_by(region=region).distinct().all()
 
     return render_template('database.html',
                          region=region,
@@ -266,11 +282,14 @@ def database(region):
                          persons=[p[0] for p in persons if p[0]],
                          cities=[c[0] for c in cities if c[0]],
                          classifications=[c[0] for c in classifications if c[0]],
+                         districts=sorted([d[0] for d in districts if d[0]]),
                          search=search,
                          current_status=status,
                          current_person=person,
                          current_city=city,
-                         current_classification=classification)
+                         current_classification=classification,
+                         current_district=district,
+                         current_must_have=must_have)
 
 
 @app.route('/database/<region>/add', methods=['GET', 'POST'])
@@ -370,6 +389,53 @@ def delete_record(id):
 def dashboard():
     """Dashboard with charts"""
     return render_template('dashboard.html')
+
+
+# Conversion-rate funnel stages (columns of the two tables)
+CONVERSION_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
+
+
+def _conversion_table(must_have_only=False, region=None):
+    """Per-stage totals: screens, blocks, building count."""
+    q = db.session.query(
+        ApartmentRecord.status,
+        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
+        db.func.coalesce(db.func.sum(ApartmentRecord.num_blocks), 0),
+        db.func.count(ApartmentRecord.id),
+    ).filter(ApartmentRecord.status.in_(CONVERSION_STAGES))
+    if must_have_only:
+        q = q.filter(ApartmentRecord.must_have.isnot(None))
+    if region:
+        q = q.filter(ApartmentRecord.region == region)
+    q = q.group_by(ApartmentRecord.status)
+
+    table = {s: {'screens': 0, 'blocks': 0, 'buildings': 0} for s in CONVERSION_STAGES}
+    for status, screens, blocks, count in q.all():
+        table[status] = {
+            'screens': int(screens or 0),
+            'blocks': int(blocks or 0),
+            'buildings': int(count or 0),
+        }
+    return table
+
+
+@app.route('/conversion')
+@login_required
+def conversion():
+    """Tỷ lệ chuyển đổi: two tables (all vs must-have), updated weekly."""
+    region = request.args.get('region', '').upper()
+    region = region if region in ('MN', 'MB') else None
+
+    now = datetime.now()
+    return render_template(
+        'conversion.html',
+        stages=CONVERSION_STAGES,
+        table_all=_conversion_table(must_have_only=False, region=region),
+        table_mh=_conversion_table(must_have_only=True, region=region),
+        region=region,
+        week=now.isocalendar()[1],
+        updated=now.strftime('%d/%m/%Y'),
+    )
 
 
 @app.route('/api/stats')
@@ -484,7 +550,8 @@ def export_data(region):
         'screens_outside_elevator': 'Số màn ngoài thang',
         'p9000': 'P9000',
         'p6000': 'P6000',
-        'prospect': 'Prospect'
+        'prospect': 'Prospect',
+        'must_have': 'Must have'
     }
     df = df.rename(columns=column_map)
     df = df.drop(columns=['id', 'region', 'created_at', 'updated_at'], errors='ignore')
@@ -550,7 +617,8 @@ def import_data(region):
             'Số màn ngoài thang': 'screens_outside_elevator',
             'P9000': 'p9000',
             'P6000': 'p6000',
-            'Prospect': 'prospect'
+            'Prospect': 'prospect',
+            'Must have': 'must_have'
         }
         df = df.rename(columns=column_map)
 
