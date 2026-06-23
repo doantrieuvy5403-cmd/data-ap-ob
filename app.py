@@ -270,6 +270,15 @@ def _ensure_schema():
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
 
+    # Drop legacy UNIQUE(year, week) on weekly_growth — now keyed by (category, year, week)
+    if 'weekly_growth' in tables and db.engine.name == 'postgresql':
+        try:
+            db.session.execute(text(
+                "ALTER TABLE weekly_growth DROP CONSTRAINT IF EXISTS uq_weekly_year_week"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
 
 # Create tables and auto-seed (never let startup crash the web process)
 with app.app_context():
@@ -567,7 +576,11 @@ def _weekly_growth_series(category=None):
 
     category None -> sum of AP + OB per week; otherwise the given category.
     """
-    _snapshot_current_week()
+    try:
+        _snapshot_current_week()
+    except Exception as e:
+        db.session.rollback()
+        print(f"weekly snapshot error: {e}")
     q = WeeklyGrowth.query
     if category:
         q = q.filter_by(category=category)
