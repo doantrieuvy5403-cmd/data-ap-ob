@@ -93,7 +93,9 @@
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quận</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thành phố</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người PT</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người PT1</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người PT2</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người PT3</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phân loại</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL màn</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
@@ -121,7 +123,10 @@
                             </span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-900">{{ record.person_in_charge or '' }}</td>
+                    {% set pt_parts = (record.person_in_charge or '').split(',') %}
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ pt_parts[0]|trim if pt_parts|length > 0 else '' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ pt_parts[1]|trim if pt_parts|length > 1 else '' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ pt_parts[2]|trim if pt_parts|length > 2 else '' }}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">{{ record.classification or '' }}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">{{ record.total_screens or 0 }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm">
@@ -137,7 +142,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="9" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="11" class="px-4 py-8 text-center text-gray-500">
                         Không có dữ liệu
                     </td>
                 </tr>

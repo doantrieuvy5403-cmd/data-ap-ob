@@ -10,6 +10,7 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen">
+        {% if logged_in %}
         <!-- Sidebar -->
         <aside class="w-64 bg-slate-900 text-white flex flex-col">
             <div class="p-6 border-b border-slate-700">
@@ -47,9 +48,27 @@
                 </a>
             </nav>
         </aside>
+        {% endif %}
 
         <!-- Main content -->
         <main class="flex-1 overflow-auto">
+            <header class="bg-white border-b border-slate-200 p-4 flex items-center justify-between">
+                <div>
+                    {% if logged_in %}
+                        <p class="text-sm text-slate-500">Xin chào, {{ current_user }}</p>
+                    {% else %}
+                        <p class="text-sm text-slate-500">Vui lòng đăng nhập để tiếp tục</p>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if logged_in %}
+                        <a href="{{ url_for('logout') }}" class="text-sm text-red-600 hover:text-red-800">Đăng xuất</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="text-sm text-blue-600 hover:text-blue-800">Đăng nhập</a>
+                    {% endif %}
+                </div>
+            </header>
+
             <!-- Flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}

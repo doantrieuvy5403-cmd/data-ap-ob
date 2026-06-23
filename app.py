@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
 from models import db, ApartmentRecord
 from datetime import datetime
 import pandas as pd
 import io
 import os
+from functools import wraps
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -11,11 +13,55 @@ DB_PATH = os.path.join(BASE_DIR, 'instance', 'database.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'data-ap-ob-secret-key-2026'
+app.config['ADMIN_USERNAME'] = os.environ.get('ADMIN_USERNAME', 'admin')
+app.config['ADMIN_PASSWORD_HASH'] = generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'password'))
 
 # Ensure instance directory exists
 os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
 
 db.init_app(app)
+
+@app.context_processor
+def inject_user():
+    return {
+        'logged_in': session.get('logged_in', False),
+        'current_user': session.get('username')
+    }
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if not session.get('logged_in'):
+            next_url = request.path
+            return redirect(url_for('login', next=next_url))
+        return view(*args, **kwargs)
+    return wrapped_view
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('logged_in'):
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+
+        if username == app.config['ADMIN_USERNAME'] and check_password_hash(app.config['ADMIN_PASSWORD_HASH'], password):
+            session['logged_in'] = True
+            session['username'] = username
+            flash('Đăng nhập thành công', 'success')
+            next_url = request.args.get('next')
+            return redirect(next_url or url_for('index'))
+
+        flash('Tên đăng nhập hoặc mật khẩu không đúng', 'error')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Đăng xuất thành công', 'success')
+    return redirect(url_for('login'))
 
 # Column mapping for seed (by position)
 SEED_COLUMNS = {
@@ -29,6 +75,62 @@ SEED_COLUMNS = {
 }
 INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
+
+# Dashboard: persons in charge (display name -> matching token in data)
+DASHBOARD_PERSONS = [
+    ('Nhiên', 'NHIÊN'),
+    ('Tân', 'TÂN'),
+    ('Quỳnh Hà', 'QUỲNH HÀ'),
+    ('Phú', 'PHÚ'),
+    ('Phương', 'PHƯƠNG'),
+    ('Dũng', 'DŨNG'),
+    ('Thuỳ', 'THUỲ'),
+    ('Quyền', 'QUYỀN'),
+    ('Ngân An', 'AN'),
+    ('Mai', 'MAI'),
+    ('Đức', 'ĐỨC'),
+    ('Khánh', 'KHÁNH'),
+]
+# Sales funnel stages in order + completion weight for progress %
+FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
+FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Done': 1.0}
+
+
+def _compute_person_progress():
+    """Per-person project counts across funnel stages + completion %."""
+    # Initialize: {display_name: {stage: 0, ...}}
+    counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _ in DASHBOARD_PERSONS}
+    token_to_disp = {token: disp for disp, token in DASHBOARD_PERSONS}
+
+    rows = db.session.query(
+        ApartmentRecord.person_in_charge,
+        ApartmentRecord.status
+    ).filter(
+        ApartmentRecord.person_in_charge.isnot(None),
+        ApartmentRecord.status.in_(FUNNEL_STAGES)
+    ).all()
+
+    for person, status in rows:
+        if not person:
+            continue
+        for tok in str(person).split(','):
+            disp = token_to_disp.get(tok.strip().upper())
+            if disp:
+                counts[disp][status] += 1
+
+    result = []
+    for disp, _ in DASHBOARD_PERSONS:
+        stage_counts = counts[disp]
+        total = sum(stage_counts.values())
+        weighted = sum(stage_counts[s] * FUNNEL_WEIGHT[s] for s in FUNNEL_STAGES)
+        progress = round(weighted / total * 100, 1) if total else 0.0
+        result.append({
+            'person': disp,
+            'stages': stage_counts,
+            'total': total,
+            'progress': progress,
+        })
+    return result
 
 
 def _auto_seed():
@@ -88,6 +190,7 @@ with app.app_context():
 
 
 @app.route('/')
+@login_required
 def index():
     """Landing page with summary stats"""
     total_mn = ApartmentRecord.query.filter_by(region='MN').count()
@@ -106,6 +209,7 @@ def index():
 
 
 @app.route('/database/<region>')
+@login_required
 def database(region):
     """Table view for AP_MN or AP_MB with search/filter"""
     region = region.upper()
@@ -171,6 +275,7 @@ def database(region):
 
 
 @app.route('/database/<region>/add', methods=['GET', 'POST'])
+@login_required
 def add_record(region):
     """Add new record"""
     region = region.upper()
@@ -213,6 +318,7 @@ def add_record(region):
 
 
 @app.route('/record/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_record(id):
     """Edit existing record"""
     record = ApartmentRecord.query.get_or_404(id)
@@ -249,6 +355,7 @@ def edit_record(id):
 
 
 @app.route('/record/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_record(id):
     """Delete record"""
     record = ApartmentRecord.query.get_or_404(id)
@@ -260,12 +367,14 @@ def delete_record(id):
 
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Dashboard with charts"""
     return render_template('dashboard.html')
 
 
 @app.route('/api/stats')
+@login_required
 def api_stats():
     """JSON endpoint for dashboard charts"""
     # Status distribution
@@ -305,7 +414,30 @@ def api_stats():
         db.func.count(ApartmentRecord.id)
     ).group_by(ApartmentRecord.region, ApartmentRecord.status).all()
 
+    # Summary KPIs
+    total = ApartmentRecord.query.count()
+    total_mn = ApartmentRecord.query.filter_by(region='MN').count()
+    total_mb = ApartmentRecord.query.filter_by(region='MB').count()
+    status_map = {s[0]: s[1] for s in status_stats}
+    funnel = {stage: status_map.get(stage, 0) for stage in FUNNEL_STAGES}
+    funnel_total = sum(funnel.values())
+    overall_progress = round(
+        sum(funnel[s] * FUNNEL_WEIGHT[s] for s in FUNNEL_STAGES) / funnel_total * 100, 1
+    ) if funnel_total else 0.0
+
     return jsonify({
+        'summary': {
+            'total': total,
+            'total_mn': total_mn,
+            'total_mb': total_mb,
+            'done': funnel['Done'],
+            'deal': funnel['Deal'],
+            'funnel': funnel,
+            'funnel_total': funnel_total,
+            'overall_progress': overall_progress,
+        },
+        'person_progress': _compute_person_progress(),
+        'funnel_stages': FUNNEL_STAGES,
         'status': [{'label': s[0], 'count': s[1]} for s in status_stats if s[0]],
         'city': [{'label': c[0], 'count': c[1]} for c in city_stats][:10],  # Top 10
         'person': [{'label': p[0], 'count': p[1]} for p in person_stats],
@@ -316,6 +448,7 @@ def api_stats():
 
 
 @app.route('/export/<region>')
+@login_required
 def export_data(region):
     """Export data as Excel"""
     region = region.upper()
@@ -371,6 +504,7 @@ def export_data(region):
 
 
 @app.route('/import/<region>', methods=['POST'])
+@login_required
 def import_data(region):
     """Import data from uploaded Excel/CSV"""
     region = region.upper()
@@ -443,6 +577,7 @@ def import_data(region):
 
 
 @app.route('/import-export')
+@login_required
 def import_export():
     """Import/Export page"""
     return render_template('import_export.html')

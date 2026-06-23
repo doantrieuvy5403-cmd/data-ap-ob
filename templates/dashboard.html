@@ -8,148 +8,227 @@
     <p class="text-gray-600 mt-2">Thống kê và phân tích dữ liệu</p>
 </div>
 
+<!-- KPI Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+    <div class="bg-gradient-to-br from-slate-700 to-slate-900 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-slate-300">Tổng dự án</p>
+        <p id="kpiTotal" class="text-3xl font-bold mt-1">–</p>
+        <p class="text-xs text-slate-300 mt-1"><span id="kpiMN">0</span> MN · <span id="kpiMB">0</span> MB</p>
+    </div>
+    <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-purple-100">Research</p>
+        <p id="kpiResearch" class="text-3xl font-bold mt-1">–</p>
+    </div>
+    <div class="bg-gradient-to-br from-orange-400 to-amber-600 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-amber-50">Plan A + B</p>
+        <p id="kpiPlan" class="text-3xl font-bold mt-1">–</p>
+    </div>
+    <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-blue-100">Deal</p>
+        <p id="kpiDeal" class="text-3xl font-bold mt-1">–</p>
+    </div>
+    <div class="bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-green-100">Done</p>
+        <p id="kpiDone" class="text-3xl font-bold mt-1">–</p>
+    </div>
+    <div class="bg-gradient-to-br from-teal-500 to-cyan-700 text-white rounded-xl shadow p-5">
+        <p class="text-xs uppercase tracking-wide text-cyan-100">Tiến độ chung</p>
+        <p id="kpiProgress" class="text-3xl font-bold mt-1">–</p>
+    </div>
+</div>
+
+<!-- Person Workload Table -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Khối lượng công việc theo người</h2>
+        <span class="text-xs text-gray-500">Số lượng dự án theo từng giai đoạn</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider">Cá nhân phụ trách</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Research</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan B</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan A</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Deal</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Done</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Tổng</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-56">Tiến độ hoàn thành</th>
+                </tr>
+            </thead>
+            <tbody id="personTableBody" class="divide-y divide-gray-100">
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Đang tải...</td></tr>
+            </tbody>
+            <tfoot class="bg-gray-50 font-semibold text-gray-800">
+                <tr id="personTableFoot"></tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
 <!-- Charts Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <!-- Status Distribution -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo trạng thái</h2>
         <canvas id="statusChart"></canvas>
     </div>
-
-    <!-- City Distribution -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-4">Phân bố theo thành phố (Top 10)</h2>
         <canvas id="cityChart"></canvas>
     </div>
-
-    <!-- Person Workload -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Khối lượng công việc theo người</h2>
-        <canvas id="personChart"></canvas>
-    </div>
-
-    <!-- Infrastructure Quality -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-4">Chất lượng cơ sở vật chất</h2>
         <canvas id="infraChart"></canvas>
     </div>
-
-    <!-- Classification -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ</h2>
         <canvas id="classChart"></canvas>
     </div>
-
-    <!-- Region vs Status -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-xl shadow p-6 lg:col-span-2">
         <h2 class="text-lg font-bold text-gray-800 mb-4">So sánh MN vs MB theo trạng thái</h2>
-        <canvas id="regionStatusChart"></canvas>
+        <canvas id="regionStatusChart" height="100"></canvas>
     </div>
 </div>
 
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
-// Fetch stats from API
+Chart.register(ChartDataLabels);
+Chart.defaults.set('plugins.datalabels', {
+    color: '#374151',
+    font: { weight: 'bold' }
+});
+
+const PALETTE = ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#8b5cf6', '#6b7280', '#ef4444', '#14b8a6'];
+
+function progressColor(pct) {
+    if (pct >= 75) return '#10b981';
+    if (pct >= 50) return '#3b82f6';
+    if (pct >= 25) return '#f59e0b';
+    return '#ef4444';
+}
+
 fetch('/api/stats')
     .then(response => response.json())
     .then(data => {
-        // Status Distribution (Pie Chart)
+        // ---- KPI cards ----
+        const s = data.summary;
+        document.getElementById('kpiTotal').textContent = s.total;
+        document.getElementById('kpiMN').textContent = s.total_mn;
+        document.getElementById('kpiMB').textContent = s.total_mb;
+        document.getElementById('kpiResearch').textContent = s.funnel['Research'];
+        document.getElementById('kpiPlan').textContent = s.funnel['Plan A'] + s.funnel['Plan B'];
+        document.getElementById('kpiDeal').textContent = s.funnel['Deal'];
+        document.getElementById('kpiDone').textContent = s.funnel['Done'];
+        document.getElementById('kpiProgress').textContent = s.overall_progress + '%';
+
+        // ---- Person workload table ----
+        const stages = data.funnel_stages; // ['Research','Plan B','Plan A','Deal','Done']
+        const tbody = document.getElementById('personTableBody');
+        tbody.innerHTML = '';
+        const totals = { Research: 0, 'Plan B': 0, 'Plan A': 0, Deal: 0, Done: 0, total: 0 };
+
+        data.person_progress.forEach(p => {
+            const cells = stages.map(st => {
+                totals[st] += p.stages[st];
+                const v = p.stages[st];
+                return `<td class="px-4 py-3 text-center ${v ? 'text-gray-800' : 'text-gray-300'}">${v}</td>`;
+            }).join('');
+            totals.total += p.total;
+            const col = progressColor(p.progress);
+            const bar = `
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div class="h-2.5 rounded-full" style="width:${p.progress}%;background:${col}"></div>
+                    </div>
+                    <span class="text-xs font-semibold w-12 text-right" style="color:${col}">${p.progress}%</span>
+                </div>`;
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-900">${p.person}</td>
+                    ${cells}
+                    <td class="px-4 py-3 text-center font-bold text-gray-900">${p.total}</td>
+                    <td class="px-4 py-3">${bar}</td>
+                </tr>`);
+        });
+
+        document.getElementById('personTableFoot').innerHTML = `
+            <td class="px-4 py-3">Tổng cộng</td>
+            ${stages.map(st => `<td class="px-4 py-3 text-center">${totals[st]}</td>`).join('')}
+            <td class="px-4 py-3 text-center">${totals.total}</td>
+            <td class="px-4 py-3"></td>`;
+
+        // ---- Status distribution (Pie) ----
         new Chart(document.getElementById('statusChart'), {
             type: 'pie',
             data: {
                 labels: data.status.map(s => s.label),
-                datasets: [{
-                    data: data.status.map(s => s.count),
-                    backgroundColor: [
-                        '#10b981', '#3b82f6', '#f59e0b', '#f97316',
-                        '#8b5cf6', '#6b7280', '#ef4444'
-                    ]
-                }]
+                datasets: [{ data: data.status.map(s => s.count), backgroundColor: PALETTE }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'bottom' }
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#fff',
+                        formatter: (v, ctx) => {
+                            const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            return v + '\n' + Math.round(v / sum * 100) + '%';
+                        },
+                        textAlign: 'center'
+                    }
                 }
             }
         });
 
-        // City Distribution (Bar Chart)
+        // ---- City distribution (Bar) ----
         new Chart(document.getElementById('cityChart'), {
             type: 'bar',
             data: {
                 labels: data.city.map(c => c.label),
-                datasets: [{
-                    label: 'Số căn hộ',
-                    data: data.city.map(c => c.count),
-                    backgroundColor: '#3b82f6'
-                }]
+                datasets: [{ label: 'Số dự án', data: data.city.map(c => c.count), backgroundColor: '#3b82f6' }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
             }
         });
 
-        // Person Workload (Horizontal Bar)
-        new Chart(document.getElementById('personChart'), {
-            type: 'bar',
-            data: {
-                labels: data.person.map(p => p.label),
-                datasets: [{
-                    label: 'Số căn hộ',
-                    data: data.person.map(p => p.count),
-                    backgroundColor: '#10b981'
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true
-            }
-        });
-
-        // Infrastructure (Doughnut)
+        // ---- Infrastructure (Doughnut) ----
         new Chart(document.getElementById('infraChart'), {
             type: 'doughnut',
             data: {
                 labels: data.infrastructure.map(i => i.label),
-                datasets: [{
-                    data: data.infrastructure.map(i => i.count),
-                    backgroundColor: ['#fbbf24', '#60a5fa', '#f87171', '#a78bfa']
-                }]
+                datasets: [{ data: data.infrastructure.map(i => i.count), backgroundColor: PALETTE }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'bottom' }
+                    legend: { position: 'bottom' },
+                    datalabels: { color: '#fff' }
                 }
             }
         });
 
-        // Classification (Bar)
+        // ---- Classification (Bar) ----
         new Chart(document.getElementById('classChart'), {
             type: 'bar',
             data: {
                 labels: data.classification.map(c => c.label),
-                datasets: [{
-                    label: 'Số căn hộ',
-                    data: data.classification.map(c => c.count),
-                    backgroundColor: '#8b5cf6'
-                }]
+                datasets: [{ label: 'Số dự án', data: data.classification.map(c => c.count), backgroundColor: '#8b5cf6' }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
             }
         });
 
-        // Region vs Status (Stacked Bar)
+        // ---- Region vs Status (Stacked Bar) ----
         const regions = ['MN', 'MB'];
         const statuses = [...new Set(data.region_status.map(r => r.status))];
         const datasets = statuses.map((status, idx) => ({
@@ -158,23 +237,22 @@ fetch('/api/stats')
                 const found = data.region_status.find(r => r.region === region && r.status === status);
                 return found ? found.count : 0;
             }),
-            backgroundColor: [
-                '#10b981', '#3b82f6', '#f59e0b', '#f97316',
-                '#8b5cf6', '#6b7280', '#ef4444'
-            ][idx % 7]
+            backgroundColor: PALETTE[idx % PALETTE.length]
         }));
 
         new Chart(document.getElementById('regionStatusChart'), {
             type: 'bar',
-            data: {
-                labels: regions,
-                datasets: datasets
-            },
+            data: { labels: regions, datasets: datasets },
             options: {
                 responsive: true,
-                scales: {
-                    x: { stacked: true },
-                    y: { stacked: true, beginAtZero: true }
+                maintainAspectRatio: false,
+                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#fff',
+                        formatter: v => v > 0 ? v : ''
+                    }
                 }
             }
         });
