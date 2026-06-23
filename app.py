@@ -177,15 +177,15 @@ def _auto_seed():
         print("Warning: data.xlsx not found, skipping seed")
         return
 
-    with open(data_file, 'rb') as f:
-        current_hash = hashlib.md5(f.read()).hexdigest()
-    meta = db.session.get(AppMeta, 'data_hash')
-    has_data = ApartmentRecord.query.count() > 0
-    if has_data and meta and meta.value == current_hash:
-        return  # Data unchanged — keep existing records & weekly history
-
-    print("Seeding apartment data from data.xlsx...")
     try:
+        with open(data_file, 'rb') as f:
+            current_hash = hashlib.md5(f.read()).hexdigest()
+        meta = db.session.get(AppMeta, 'data_hash')
+        has_data = ApartmentRecord.query.count() > 0
+        if has_data and meta and meta.value == current_hash:
+            return  # Data unchanged — keep existing records & weekly history
+
+        print("Seeding apartment data from data.xlsx...")
         # Refresh apartment records only (weekly_growth untouched)
         ApartmentRecord.query.delete()
         db.session.commit()
@@ -268,11 +268,23 @@ def _ensure_schema():
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
 
 
-# Create tables and auto-seed
+# Create tables and auto-seed (never let startup crash the web process)
 with app.app_context():
-    db.create_all()
-    _ensure_schema()
-    _auto_seed()
+    try:
+        db.create_all()
+    except Exception as e:
+        db.session.rollback()
+        print(f"create_all error: {e}")
+    try:
+        _ensure_schema()
+    except Exception as e:
+        db.session.rollback()
+        print(f"ensure_schema error: {e}")
+    try:
+        _auto_seed()
+    except Exception as e:
+        db.session.rollback()
+        print(f"auto_seed error: {e}")
 
 
 @app.route('/')
