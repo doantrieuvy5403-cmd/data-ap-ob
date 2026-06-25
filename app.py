@@ -408,6 +408,7 @@ def database(category, region):
     cities = opt(ApartmentRecord.city)
     classifications = opt(ApartmentRecord.classification)
     districts = opt(ApartmentRecord.district)
+    building_names = opt(ApartmentRecord.building_name)
 
     return render_template('database.html',
                          category=category,
@@ -418,6 +419,7 @@ def database(category, region):
                          cities=[c[0] for c in cities if c[0]],
                          classifications=[c[0] for c in classifications if c[0]],
                          districts=sorted([d[0] for d in districts if d[0]]),
+                         building_names=sorted({b[0] for b in building_names if b[0]}),
                          search=search,
                          current_status=status,
                          current_person=person,
