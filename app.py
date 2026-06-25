@@ -311,11 +311,16 @@ def index():
     ob_mn = count('OB', 'MN')
     ob_mb = count('OB', 'MB')
 
-    # Status breakdown
-    status_stats = db.session.query(
+    # Status breakdown (fixed display order: 2 rows of 5)
+    STATUS_ORDER = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done',
+                    'Code', 'Fail', 'Pending', 'Lost', 'Reject']
+    raw = dict(db.session.query(
         ApartmentRecord.status,
         db.func.count(ApartmentRecord.id)
-    ).group_by(ApartmentRecord.status).all()
+    ).group_by(ApartmentRecord.status).all())
+    status_stats = [(s, raw.get(s, 0)) for s in STATUS_ORDER]
+    # Append any other statuses present in the data but not in the fixed list
+    status_stats += [(s, c) for s, c in raw.items() if s and s not in STATUS_ORDER]
 
     return render_template('index.html',
                          ap_mn=ap_mn,
