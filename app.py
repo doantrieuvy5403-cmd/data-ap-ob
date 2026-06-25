@@ -303,8 +303,13 @@ with app.app_context():
 @login_required
 def index():
     """Landing page with summary stats"""
-    total_mn = ApartmentRecord.query.filter_by(region='MN').count()
-    total_mb = ApartmentRecord.query.filter_by(region='MB').count()
+    def count(category, region):
+        return ApartmentRecord.query.filter_by(category=category, region=region).count()
+
+    ap_mn = count('AP', 'MN')
+    ap_mb = count('AP', 'MB')
+    ob_mn = count('OB', 'MN')
+    ob_mb = count('OB', 'MB')
 
     # Status breakdown
     status_stats = db.session.query(
@@ -313,8 +318,10 @@ def index():
     ).group_by(ApartmentRecord.status).all()
 
     return render_template('index.html',
-                         total_mn=total_mn,
-                         total_mb=total_mb,
+                         ap_mn=ap_mn,
+                         ap_mb=ap_mb,
+                         ob_mn=ob_mn,
+                         ob_mb=ob_mb,
                          status_stats=status_stats)
 
 
