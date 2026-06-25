@@ -334,6 +334,13 @@ def _valid_cat_region(category, region):
     return category in ('AP', 'OB') and region in ('MN', 'MB')
 
 
+def _join_persons(form):
+    """Combine PT1/PT2/PT3 inputs into a single comma-separated string."""
+    parts = [form.get(f'pt{i}', '').strip() for i in (1, 2, 3)]
+    joined = ', '.join(p for p in parts if p)
+    return joined or None
+
+
 @app.route('/database/<category>/<region>')
 @login_required
 def database(category, region):
@@ -386,6 +393,9 @@ def database(category, region):
     elif must_have == '0':
         query = query.filter(ApartmentRecord.must_have.is_(None))
 
+    # Order by real STT (nulls last), then id
+    query = query.order_by(ApartmentRecord.stt.is_(None), ApartmentRecord.stt.asc(), ApartmentRecord.id.asc())
+
     # Pagination
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -433,7 +443,7 @@ def add_record(category, region):
             region=region,
             stt=request.form.get('stt', type=int),
             team_assignment=request.form.get('team_assignment'),
-            person_in_charge=request.form.get('person_in_charge'),
+            person_in_charge=_join_persons(request.form),
             status=request.form.get('status'),
             approach_time=request.form.get('approach_time'),
             notes=request.form.get('notes'),
@@ -461,7 +471,11 @@ def add_record(category, region):
         flash('Record added successfully', 'success')
         return redirect(url_for('database', category=category.lower(), region=region.lower()))
 
-    return render_template('add_edit.html', category=category, region=region, record=None)
+    # Suggest the next STT for this category + region (max existing + 1)
+    max_stt = db.session.query(db.func.max(ApartmentRecord.stt)).filter_by(
+        category=category, region=region).scalar()
+    next_stt = (max_stt or 0) + 1
+    return render_template('add_edit.html', category=category, region=region, record=None, next_stt=next_stt)
 
 
 @app.route('/record/<int:id>/edit', methods=['GET', 'POST'])
@@ -473,7 +487,7 @@ def edit_record(id):
     if request.method == 'POST':
         record.stt = request.form.get('stt', type=int)
         record.team_assignment = request.form.get('team_assignment')
-        record.person_in_charge = request.form.get('person_in_charge')
+        record.person_in_charge = _join_persons(request.form)
         record.status = request.form.get('status')
         record.approach_time = request.form.get('approach_time')
         record.notes = request.form.get('notes')
