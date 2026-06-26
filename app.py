@@ -99,7 +99,7 @@ INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
 
 # Bump when the seed logic changes (forces a one-time reseed even if data.xlsx is unchanged)
-SEED_VERSION = '2-ob'
+SEED_VERSION = '3-update-2026-06-26'
 
 # (sheet_name, category, region, skiprows, column_map, screen_sum_cols)
 SEED_SHEETS = [
@@ -185,14 +185,14 @@ def _auto_seed():
             current_hash = f'{SEED_VERSION}:{hashlib.md5(f.read()).hexdigest()}'
         meta = db.session.get(AppMeta, 'data_hash')
         has_data = ApartmentRecord.query.count() > 0
-        if has_data:
-            # DB already populated — NEVER re-seed/wipe, so manually-added rows
-            # and edits survive every deploy/restart. To force a fresh import
-            # from a new data.xlsx, clear the apartment_record table manually.
+        if has_data and meta and meta.value == current_hash:
+            # data.xlsx & seed logic unchanged — keep all records (incl. manual
+            # edits/adds) and weekly history. Only a NEW data.xlsx triggers a
+            # fresh import below.
             return
 
-        print("Seeding apartment data from data.xlsx (empty DB)...")
-        # Fresh import into an empty table (weekly_growth untouched)
+        print("Seeding apartment data from data.xlsx (new/changed file)...")
+        # Refresh apartment records only (weekly_growth untouched)
         ApartmentRecord.query.delete()
         db.session.commit()
         xls = pd.ExcelFile(data_file)
