@@ -4,10 +4,6 @@ set -e
 # Install dependencies
 pip install -r requirements.txt
 
-# Seed database if data.xlsx exists
-if [ -f "data.xlsx" ]; then
-    echo "Seeding database from data.xlsx..."
-    python seed.py
-else
-    echo "Warning: data.xlsx not found, skipping database seed"
-fi
+# NOTE: Database seeding is handled by app.py (_auto_seed) on startup, and ONLY
+# when the database is empty. Do NOT run seed.py here — it calls db.drop_all()
+# which would wipe all data (including manually-added rows) on every deploy.

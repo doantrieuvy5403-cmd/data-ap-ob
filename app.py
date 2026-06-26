@@ -185,11 +185,14 @@ def _auto_seed():
             current_hash = f'{SEED_VERSION}:{hashlib.md5(f.read()).hexdigest()}'
         meta = db.session.get(AppMeta, 'data_hash')
         has_data = ApartmentRecord.query.count() > 0
-        if has_data and meta and meta.value == current_hash:
-            return  # Data & seed-logic unchanged — keep records & weekly history
+        if has_data:
+            # DB already populated — NEVER re-seed/wipe, so manually-added rows
+            # and edits survive every deploy/restart. To force a fresh import
+            # from a new data.xlsx, clear the apartment_record table manually.
+            return
 
-        print("Seeding apartment data from data.xlsx...")
-        # Refresh apartment records only (weekly_growth untouched)
+        print("Seeding apartment data from data.xlsx (empty DB)...")
+        # Fresh import into an empty table (weekly_growth untouched)
         ApartmentRecord.query.delete()
         db.session.commit()
         xls = pd.ExcelFile(data_file)
