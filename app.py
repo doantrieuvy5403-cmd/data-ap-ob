@@ -131,21 +131,24 @@ def _derive_region(city):
     return 'MB' if any(k in c for k in north) else 'MN'
 
 
-# Dashboard: persons in charge (display name -> matching token in data)
+# Dashboard: persons in charge — (display name, matching token in data, team)
 DASHBOARD_PERSONS = [
-    ('Nhiên', 'NHIÊN'),
-    ('Tân', 'TÂN'),
-    ('Quỳnh Hà', 'QUỲNH HÀ'),
-    ('Phú', 'PHÚ'),
-    ('Phương', 'PHƯƠNG'),
-    ('Dũng', 'DŨNG'),
-    ('Thuỳ', 'THUỲ'),
-    ('Quyền', 'QUYỀN'),
-    ('Ngân An', 'AN'),
-    ('Mai', 'MAI'),
-    ('Đức', 'ĐỨC'),
-    ('Khánh', 'KHÁNH'),
+    ('Nhiên', 'NHIÊN', 'Team Nhiên'),
+    ('Tân', 'TÂN', 'Team Tân'),
+    ('Quỳnh Hà', 'QUỲNH HÀ', 'Team Tân'),
+    ('Phú', 'PHÚ', 'Team Tân'),
+    ('Phương', 'PHƯƠNG', 'Team Vy'),
+    ('Dũng', 'DŨNG', 'Team Dũng'),
+    ('Mai', 'MAI', 'Team Mai'),
+    ('Khánh', 'KHÁNH', 'Team Mai'),
+    ('Quyền', 'QUYỀN', 'Team Thuỳ'),
+    ('Ngân An', 'AN', 'Team Thuỳ'),
+    ('Thuỳ', 'THUỲ', 'Team Thuỳ'),
 ]
+# Per-person screen targets (Deal + Done), split equally among all members
+PERSON_TARGET_AP = 3000  # total AP screen target across the team
+PERSON_TARGET_OB = 500   # total OB screen target across the team
+DEAL_DONE_STAGES = ['Deal', 'Done']
 # Sales funnel stages in order + completion weight for progress %
 FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
 FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Done': 1.0}
@@ -189,41 +192,75 @@ def _screen_progress():
 
 
 def _compute_person_progress(category=None):
-    """Per-person project counts across funnel stages + completion %."""
-    # Initialize: {display_name: {stage: 0, ...}}
-    counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _ in DASHBOARD_PERSONS}
-    token_to_disp = {token: disp for disp, token in DASHBOARD_PERSONS}
+    """Per-person project counts + screen achievements vs AP/OB targets.
 
-    q = db.session.query(
-        ApartmentRecord.person_in_charge,
-        ApartmentRecord.status
+    Returns, per person: funnel stage counts, project-progress % (weighted
+    funnel), and screen-progress % (Deal+Done screens vs per-person target,
+    AP and OB weighted equally). Always computed across all categories so the
+    AP/OB targets line up regardless of the dashboard category filter.
+    """
+    persons = DASHBOARD_PERSONS
+    n = len(persons) or 1
+    target_ap = PERSON_TARGET_AP / n   # per-person AP screen target
+    target_ob = PERSON_TARGET_OB / n   # per-person OB screen target
+
+    counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _, _ in persons}
+    ap_screens = {disp: 0 for disp, _, _ in persons}
+    ob_screens = {disp: 0 for disp, _, _ in persons}
+    token_to_disp = {token: disp for disp, token, _ in persons}
+
+    # Project counts across funnel stages
+    for person, status in db.session.query(
+        ApartmentRecord.person_in_charge, ApartmentRecord.status
     ).filter(
         ApartmentRecord.person_in_charge.isnot(None),
         ApartmentRecord.status.in_(FUNNEL_STAGES)
-    )
-    if category:
-        q = q.filter(ApartmentRecord.category == category)
-    rows = q.all()
-
-    for person, status in rows:
-        if not person:
-            continue
+    ).all():
         for tok in str(person).split(','):
             disp = token_to_disp.get(tok.strip().upper())
             if disp:
                 counts[disp][status] += 1
 
+    # Screen achievements (Deal + Done) split by category
+    for person, cat, screens in db.session.query(
+        ApartmentRecord.person_in_charge, ApartmentRecord.category, ApartmentRecord.total_screens
+    ).filter(
+        ApartmentRecord.person_in_charge.isnot(None),
+        ApartmentRecord.status.in_(DEAL_DONE_STAGES),
+        ApartmentRecord.total_screens.isnot(None)
+    ).all():
+        if not screens:
+            continue
+        for tok in str(person).split(','):
+            disp = token_to_disp.get(tok.strip().upper())
+            if disp:
+                if cat == 'AP':
+                    ap_screens[disp] += int(screens)
+                elif cat == 'OB':
+                    ob_screens[disp] += int(screens)
+
     result = []
-    for disp, _ in DASHBOARD_PERSONS:
+    for disp, _, team in persons:
         stage_counts = counts[disp]
         total = sum(stage_counts.values())
         weighted = sum(stage_counts[s] * FUNNEL_WEIGHT[s] for s in FUNNEL_STAGES)
-        progress = round(weighted / total * 100, 1) if total else 0.0
+        progress_project = round(weighted / total * 100, 1) if total else 0.0
+        ap = ap_screens[disp]
+        ob = ob_screens[disp]
+        ap_pct = (ap / target_ap * 100) if target_ap else 0
+        ob_pct = (ob / target_ob * 100) if target_ob else 0
+        progress_screen = round((ap_pct + ob_pct) / 2, 1)
         result.append({
             'person': disp,
+            'team': team,
             'stages': stage_counts,
             'total': total,
-            'progress': progress,
+            'progress': progress_project,
+            'progress_screen': progress_screen,
+            'ap_screens': ap,
+            'ob_screens': ob,
+            'target_ap': round(target_ap, 1),
+            'target_ob': round(target_ob, 1),
         })
     return result
 

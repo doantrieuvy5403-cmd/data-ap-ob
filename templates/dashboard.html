@@ -67,17 +67,21 @@
             <thead class="bg-gray-50 text-gray-600">
                 <tr>
                     <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider">Cá nhân phụ trách</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider">Team</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Research</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan B</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan A</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Deal</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Done</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Tổng</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-56">Tiến độ hoàn thành</th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-blue-50">Target AP<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-teal-50">Target OB<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ theo dự án</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ theo màn hình</th>
                 </tr>
             </thead>
             <tbody id="personTableBody" class="divide-y divide-gray-100">
-                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Đang tải...</td></tr>
+                <tr><td colspan="12" class="px-4 py-8 text-center text-gray-400">Đang tải...</td></tr>
             </tbody>
             <tfoot class="bg-gray-50 font-semibold text-gray-800">
                 <tr id="personTableFoot"></tr>
@@ -203,7 +207,19 @@ fetch('/api/stats?category={{ category }}')
         const stages = data.funnel_stages;
         const tbody = document.getElementById('personTableBody');
         tbody.innerHTML = '';
-        const totals = { Research: 0, 'Plan B': 0, 'Plan A': 0, Deal: 0, Done: 0, total: 0 };
+        const totals = { Research: 0, 'Plan B': 0, 'Plan A': 0, Deal: 0, Done: 0, total: 0,
+                         ap: 0, ob: 0, tgtAp: 0, tgtOb: 0 };
+
+        function progressBar(pct) {
+            const col = progressColor(pct);
+            return `
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div class="h-2.5 rounded-full" style="width:${Math.min(pct,100)}%;background:${col}"></div>
+                    </div>
+                    <span class="text-xs font-semibold w-12 text-right" style="color:${col}">${pct}%</span>
+                </div>`;
+        }
 
         data.person_progress.forEach(p => {
             const cells = stages.map(st => {
@@ -212,28 +228,32 @@ fetch('/api/stats?category={{ category }}')
                 return `<td class="px-4 py-3 text-center ${v ? 'text-gray-800' : 'text-gray-300'}">${v}</td>`;
             }).join('');
             totals.total += p.total;
-            const col = progressColor(p.progress);
-            const bar = `
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                        <div class="h-2.5 rounded-full" style="width:${p.progress}%;background:${col}"></div>
-                    </div>
-                    <span class="text-xs font-semibold w-12 text-right" style="color:${col}">${p.progress}%</span>
-                </div>`;
+            totals.ap += p.ap_screens; totals.ob += p.ob_screens;
+            totals.tgtAp += p.target_ap; totals.tgtOb += p.target_ob;
             tbody.insertAdjacentHTML('beforeend', `
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-900">${p.person}</td>
+                    <td class="px-4 py-3 text-gray-600">${p.team}</td>
                     ${cells}
                     <td class="px-4 py-3 text-center font-bold text-gray-900">${p.total}</td>
-                    <td class="px-4 py-3">${bar}</td>
+                    <td class="px-4 py-3 text-center bg-blue-50/40"><span class="font-semibold text-blue-700">${p.ap_screens}</span> <span class="text-gray-400">/ ${p.target_ap}</span></td>
+                    <td class="px-4 py-3 text-center bg-teal-50/40"><span class="font-semibold text-teal-700">${p.ob_screens}</span> <span class="text-gray-400">/ ${p.target_ob}</span></td>
+                    <td class="px-4 py-3">${progressBar(p.progress)}</td>
+                    <td class="px-4 py-3">${progressBar(p.progress_screen)}</td>
                 </tr>`);
         });
 
+        const tgtTotal = totals.tgtAp + totals.tgtOb;
+        const screenPctTotal = tgtTotal ? Math.round((totals.ap + totals.ob) / tgtTotal * 1000) / 10 : 0;
         document.getElementById('personTableFoot').innerHTML = `
             <td class="px-4 py-3">Tổng cộng</td>
+            <td class="px-4 py-3"></td>
             ${stages.map(st => `<td class="px-4 py-3 text-center">${totals[st]}</td>`).join('')}
             <td class="px-4 py-3 text-center">${totals.total}</td>
-            <td class="px-4 py-3"></td>`;
+            <td class="px-4 py-3 text-center text-blue-700">${totals.ap} / ${Math.round(totals.tgtAp)}</td>
+            <td class="px-4 py-3 text-center text-teal-700">${totals.ob} / ${Math.round(totals.tgtOb)}</td>
+            <td class="px-4 py-3"></td>
+            <td class="px-4 py-3 text-xs text-gray-600">Toàn đội: ${screenPctTotal}%</td>`;
 
         // ---- Classification (Bar) ----
         new Chart(document.getElementById('classChart'), {
