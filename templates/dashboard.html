@@ -99,11 +99,18 @@
     </div>
 </div>
 
-<!-- Classification -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại — chi tiết (AP vs OB)</h2>
-    <p class="text-xs text-gray-500 mb-4">Chỉ tính dự án ở giai đoạn Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
-    <canvas id="classChart" height="100"></canvas>
+<!-- Classification detailed: AP & OB tách riêng -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại chi tiết — AP (Căn hộ)</h2>
+        <p class="text-xs text-gray-500 mb-4">Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
+        <canvas id="classChartAP" height="140"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại chi tiết — OB (Văn phòng)</h2>
+        <p class="text-xs text-gray-500 mb-4">Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
+        <canvas id="classChartOB" height="140"></canvas>
+    </div>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl shadow p-6">
@@ -282,26 +289,32 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-xs text-blue-700">Toàn đội: ${apPctTotal}%</td>
             <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
-        // ---- Classification detailed: AP vs OB (grouped bar) ----
+        // ---- Classification detailed: AP & OB tách riêng (all-blue shades) ----
         const cd = data.classification_detail || { labels: [], AP: [], OB: [] };
-        new Chart(document.getElementById('classChart'), {
-            type: 'bar',
-            data: {
-                labels: cd.labels,
-                datasets: [
-                    { label: 'AP', data: cd.AP, backgroundColor: '#3b82f6' },
-                    { label: 'OB', data: cd.OB, backgroundColor: '#14b8a6' },
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
+        const blueRamp = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
+        function classBar(canvasId, arr) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: cd.labels,
+                    datasets: [{
+                        label: 'Số dự án',
+                        data: arr,
+                        backgroundColor: cd.labels.map((_, i) => blueRamp[i % blueRamp.length])
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
+                    }
                 }
-            }
-        });
+            });
+        }
+        classBar('classChartAP', cd.AP);
+        classBar('classChartOB', cd.OB);
 
         // ---- Classification grouped A/B/C, one pie per category ----
         const cg = data.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
