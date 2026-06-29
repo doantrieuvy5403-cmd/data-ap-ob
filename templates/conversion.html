@@ -2,7 +2,7 @@
 
 {% block title %}Tỷ Lệ Chuyển Đổi - DATA AP OB{% endblock %}
 
-{% macro conv_table(title, table, stages, accent) %}
+{% macro conv_table(title, table, stages, accent, install) %}
 <div class="bg-white rounded-xl shadow p-6">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-gray-800">{{ title }}</h2>
@@ -16,6 +16,7 @@
                     {% for s in stages %}
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider border-b border-gray-200">{{ s }}</th>
                     {% endfor %}
+                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider border-b border-blue-200 bg-blue-600 text-white">Install</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider border-b border-gray-200 bg-gray-100">Tổng</th>
                 </tr>
             </thead>
@@ -33,12 +34,14 @@
                         {% set ns.total = ns.total + table[s][key] %}
                         <td class="px-4 py-3 text-center {{ 'text-gray-800' if table[s][key] else 'text-gray-300' }}">{{ table[s][key] }}</td>
                     {% endfor %}
+                    <td class="px-4 py-3 text-center font-bold text-blue-700 bg-blue-50">{{ install[key] }}</td>
                     <td class="px-4 py-3 text-center font-bold text-gray-900 bg-gray-50">{{ ns.total }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <p class="text-xs text-blue-600 mt-2">* Cột <span class="font-semibold">Install</span> = số liệu toà nhà đã lắp đặt (tham chiếu), <span class="font-semibold">không</span> cộng vào cột Tổng.</p>
 </div>
 {% endmacro %}
 
@@ -72,8 +75,8 @@
 </div>
 
 <div class="grid grid-cols-1 gap-6">
-    {{ conv_table('Bảng 1 — Toàn bộ dự án (gồm Must have & không Must have)', table_all, stages, 'bg-blue-500') }}
-    {{ conv_table('Bảng 2 — Chỉ loại Must have', table_mh, stages, 'bg-rose-500') }}
+    {{ conv_table('Bảng 1 — Toàn bộ dự án (gồm Must have & không Must have)', table_all, stages, 'bg-blue-500', install) }}
+    {{ conv_table('Bảng 2 — Chỉ loại Must have', table_mh, stages, 'bg-rose-500', install) }}
 </div>
 
 <p class="text-xs text-gray-400 mt-4">

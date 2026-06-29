@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
-from models import db, ApartmentRecord, WeeklyGrowth, AppMeta
+from models import db, ApartmentRecord, WeeklyGrowth, AppMeta, InstallRecord
 from datetime import datetime
 import pandas as pd
 import io
@@ -108,6 +108,28 @@ SEED_SHEETS = [
     ('Databse OB_MN (A,B)', 'OB', 'MN', 13, SEED_COLUMNS_OB, OB_SCREEN_COLS),
     ('Databse OB_MB (A,B,C)', 'OB', 'MB', 12, SEED_COLUMNS_OB, OB_SCREEN_COLS),
 ]
+
+# --- Install (Digital Building) data: already-installed sites, independent of funnel ---
+INSTALL_FILE = 'install.xlsx'
+INSTALL_SHEET = 'List sale_DIGITAL BUILDING'
+INSTALL_SKIPROWS = 4  # header at row 2, data starts at row 4 (0-indexed)
+INSTALL_VERSION = '1'
+# Column index (in the sheet) -> InstallRecord field
+INSTALL_COLUMNS = {
+    0: 'stt', 1: 'category', 2: 'report_code', 4: 'name_of_block',
+    6: 'address_detail', 7: 'ward', 8: 'city',
+    19: 'dp_inside', 20: 'dp_outside', 21: 'total', 22: 'operational_status',
+}
+INSTALL_INT_FIELDS = ['stt', 'dp_inside', 'dp_outside', 'total']
+
+
+def _derive_region(city):
+    """Best-effort MN/MB from a city name (install data has no region column)."""
+    c = (city or '').lower()
+    north = ['hà nội', 'ha noi', 'hanoi', 'hải phòng', 'hai phong', 'bắc ninh',
+             'quảng ninh', 'hà nam', 'nam định', 'thái', 'vĩnh phúc', 'bắc']
+    return 'MB' if any(k in c for k in north) else 'MN'
+
 
 # Dashboard: persons in charge (display name -> matching token in data)
 DASHBOARD_PERSONS = [
@@ -251,6 +273,67 @@ def _auto_seed():
         print(f"Seed error: {e}")
 
 
+def _auto_seed_install():
+    """Seed install_record from install.xlsx, only when the file is new/changed.
+
+    Like _auto_seed, existing data (incl. manual edits/imports) is preserved
+    across deploys unless install.xlsx itself changes.
+    """
+    data_file = os.path.join(BASE_DIR, INSTALL_FILE)
+    if not os.path.exists(data_file):
+        print("Warning: install.xlsx not found, skipping install seed")
+        return
+    try:
+        with open(data_file, 'rb') as f:
+            current_hash = f'{INSTALL_VERSION}:{hashlib.md5(f.read()).hexdigest()}'
+        meta = db.session.get(AppMeta, 'install_hash')
+        has_data = InstallRecord.query.count() > 0
+        if has_data and meta and meta.value == current_hash:
+            return  # unchanged — keep all install records
+
+        print("Seeding install data from install.xlsx (new/changed file)...")
+        InstallRecord.query.delete()
+        db.session.commit()
+        df = pd.read_excel(data_file, sheet_name=INSTALL_SHEET, header=None, skiprows=INSTALL_SKIPROWS)
+        for _, row in df.iterrows():
+            code = row.iloc[2] if len(row) > 2 else None
+            name = row.iloc[4] if len(row) > 4 else None
+            # Skip section separators / summary rows (no report code & no name)
+            if (pd.isna(code) or not str(code).strip()) and (pd.isna(name) or not str(name).strip()):
+                continue
+            rec = InstallRecord()
+            for col_idx, field in INSTALL_COLUMNS.items():
+                if col_idx >= len(row):
+                    continue
+                val = row.iloc[col_idx]
+                if pd.isna(val):
+                    continue
+                if field in INSTALL_INT_FIELDS:
+                    try:
+                        val = int(float(str(val).replace("'", "").replace(",", "")))
+                    except (ValueError, TypeError):
+                        continue
+                elif field == 'category':
+                    val = str(val).strip().upper()
+                    if val not in ('AP', 'OB'):
+                        val = None
+                else:
+                    val = str(val).strip()
+                setattr(rec, field, val)
+            rec.region = _derive_region(rec.city)
+            db.session.add(rec)
+        db.session.commit()
+        if meta is None:
+            meta = AppMeta(key='install_hash')
+            db.session.add(meta)
+        meta.value = current_hash
+        db.session.commit()
+        print(f"Seeded {InstallRecord.query.count()} install records!")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Install seed error: {e}")
+
+
 def _ensure_schema():
     """Add columns introduced after initial deploy (safe for SQLite & Postgres)."""
     from sqlalchemy import inspect, text
@@ -300,6 +383,11 @@ with app.app_context():
     except Exception as e:
         db.session.rollback()
         print(f"auto_seed error: {e}")
+    try:
+        _auto_seed_install()
+    except Exception as e:
+        db.session.rollback()
+        print(f"auto_seed_install error: {e}")
 
 
 @app.route('/')
@@ -573,6 +661,29 @@ def _conversion_table(must_have_only=False, region=None, category=None):
     return table
 
 
+def _install_totals(region=None, category=None):
+    """Reference totals from installed sites (independent of the funnel).
+
+    Returns {'screens', 'blocks', 'buildings'} for the Install column shown on
+    the conversion page. Does NOT feed into the conversion table's own numbers.
+    """
+    q = db.session.query(
+        db.func.coalesce(db.func.sum(InstallRecord.total), 0),
+        db.func.count(InstallRecord.id),
+        db.func.count(db.distinct(InstallRecord.name_of_block)),
+    )
+    if region:
+        q = q.filter(InstallRecord.region == region)
+    if category:
+        q = q.filter(InstallRecord.category == category)
+    screens, blocks, buildings = q.one()
+    return {
+        'screens': int(screens or 0),
+        'blocks': int(blocks or 0),
+        'buildings': int(buildings or 0),
+    }
+
+
 def _snapshot_current_week():
     """Upsert this ISO-week's screen totals per stage, for each category."""
     now = datetime.now()
@@ -654,6 +765,7 @@ def conversion():
         stages=CONVERSION_STAGES,
         table_all=_conversion_table(must_have_only=False, region=region, category=category),
         table_mh=_conversion_table(must_have_only=True, region=region, category=category),
+        install=_install_totals(region=region, category=category),
         region=region,
         category=category,
         week=now.isocalendar()[1],
@@ -880,6 +992,188 @@ def import_data(category, region):
 def import_export():
     """Import/Export page"""
     return render_template('import_export.html')
+
+
+# ----------------------------------------------------------------------------
+# DataBase Install (Digital Building) — installed sites, with import/export
+# ----------------------------------------------------------------------------
+INSTALL_EXPORT_COLUMNS = [
+    ('stt', 'STT'),
+    ('report_code', 'Report Code'),
+    ('name_of_block', 'Name of Block'),
+    ('address_detail', 'Address Detail'),
+    ('ward', 'Ward'),
+    ('city', 'City'),
+    ('dp_inside', 'DP (Inside Elevator)'),
+    ('dp_outside', 'DP/LCD (Outside)'),
+    ('total', 'Total'),
+    ('operational_status', 'Operational Status'),
+    ('category', 'Loại Hình'),
+]
+
+
+@app.route('/install')
+@login_required
+def install():
+    """DataBase Install: list of already-installed Digital Building sites."""
+    category = request.args.get('category', '').upper()
+    category = category if category in ('AP', 'OB') else ''
+    search = request.args.get('search', '').strip()
+    op_status = request.args.get('op_status', '').strip()
+
+    query = InstallRecord.query
+    if category:
+        query = query.filter_by(category=category)
+    if op_status:
+        query = query.filter_by(operational_status=op_status)
+    if search:
+        query = query.filter(db.or_(
+            InstallRecord.name_of_block.contains(search),
+            InstallRecord.report_code.contains(search),
+            InstallRecord.address_detail.contains(search),
+            InstallRecord.ward.contains(search),
+            InstallRecord.city.contains(search),
+        ))
+    query = query.order_by(InstallRecord.stt.is_(None), InstallRecord.stt.asc(), InstallRecord.id.asc())
+
+    page = request.args.get('page', 1, type=int)
+    records = query.paginate(page=page, per_page=50, error_out=False)
+
+    op_statuses = [s[0] for s in db.session.query(InstallRecord.operational_status)
+                   .distinct().all() if s[0]]
+    totals = _install_totals(category=category or None)
+    return render_template('install.html',
+                           records=records,
+                           category=category,
+                           search=search,
+                           op_status=op_status,
+                           op_statuses=sorted(op_statuses),
+                           totals=totals)
+
+
+def _install_from_form(rec, form):
+    rec.stt = form.get('stt', type=int)
+    rec.report_code = form.get('report_code') or None
+    rec.name_of_block = form.get('name_of_block') or None
+    rec.address_detail = form.get('address_detail') or None
+    rec.ward = form.get('ward') or None
+    rec.city = form.get('city') or None
+    rec.dp_inside = form.get('dp_inside', type=int)
+    rec.dp_outside = form.get('dp_outside', type=int)
+    rec.total = form.get('total', type=int)
+    rec.operational_status = form.get('operational_status') or None
+    cat = (form.get('category') or '').upper()
+    rec.category = cat if cat in ('AP', 'OB') else None
+    rec.region = _derive_region(rec.city)
+    return rec
+
+
+@app.route('/install/add', methods=['GET', 'POST'])
+@login_required
+def install_add():
+    if request.method == 'POST':
+        rec = _install_from_form(InstallRecord(), request.form)
+        db.session.add(rec)
+        db.session.commit()
+        flash('Đã thêm bản ghi Install', 'success')
+        return redirect(url_for('install'))
+    max_stt = db.session.query(db.func.max(InstallRecord.stt)).scalar()
+    return render_template('install_edit.html', record=None, next_stt=(max_stt or 0) + 1)
+
+
+@app.route('/install/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def install_edit(id):
+    rec = InstallRecord.query.get_or_404(id)
+    if request.method == 'POST':
+        _install_from_form(rec, request.form)
+        db.session.commit()
+        flash('Đã cập nhật bản ghi Install', 'success')
+        return redirect(url_for('install'))
+    return render_template('install_edit.html', record=rec, next_stt=None)
+
+
+@app.route('/install/<int:id>/delete', methods=['POST'])
+@login_required
+def install_delete(id):
+    rec = InstallRecord.query.get_or_404(id)
+    db.session.delete(rec)
+    db.session.commit()
+    flash('Đã xóa bản ghi Install', 'success')
+    return redirect(url_for('install'))
+
+
+@app.route('/install/export')
+@login_required
+def install_export():
+    records = InstallRecord.query.order_by(
+        InstallRecord.stt.is_(None), InstallRecord.stt.asc(), InstallRecord.id.asc()).all()
+    rows = []
+    for r in records:
+        d = r.to_dict()
+        rows.append({label: d.get(field) for field, label in INSTALL_EXPORT_COLUMNS})
+    df = pd.DataFrame(rows, columns=[label for _, label in INSTALL_EXPORT_COLUMNS])
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Install')
+    output.seek(0)
+    filename = f'Database_Install_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    return send_file(output, as_attachment=True, download_name=filename,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@app.route('/install/import', methods=['POST'])
+@login_required
+def install_import():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        flash('Chưa chọn file', 'error')
+        return redirect(url_for('install'))
+    file = request.files['file']
+    replace = request.form.get('mode') == 'replace'
+    try:
+        if file.filename.lower().endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+        label_to_field = {label: field for field, label in INSTALL_EXPORT_COLUMNS}
+        df = df.rename(columns=label_to_field)
+
+        if replace:
+            InstallRecord.query.delete()
+            db.session.commit()
+
+        count = 0
+        for _, row in df.iterrows():
+            rec = InstallRecord()
+            for field in label_to_field.values():
+                if field not in row:
+                    continue
+                val = row[field]
+                if pd.isna(val):
+                    continue
+                if field in INSTALL_INT_FIELDS:
+                    try:
+                        val = int(float(str(val).replace("'", "").replace(",", "")))
+                    except (ValueError, TypeError):
+                        continue
+                elif field == 'category':
+                    val = str(val).strip().upper()
+                    if val not in ('AP', 'OB'):
+                        val = None
+                else:
+                    val = str(val).strip()
+                setattr(rec, field, val)
+            if not rec.name_of_block and not rec.report_code:
+                continue
+            rec.region = _derive_region(rec.city)
+            db.session.add(rec)
+            count += 1
+        db.session.commit()
+        flash(f'Đã import {count} bản ghi Install', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Lỗi import: {e}', 'error')
+    return redirect(url_for('install'))
 
 
 if __name__ == '__main__':

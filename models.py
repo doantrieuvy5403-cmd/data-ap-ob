@@ -69,6 +69,45 @@ class ApartmentRecord(db.Model):
         }
 
 
+class InstallRecord(db.Model):
+    """Buildings already installed (Digital Building). Independent of the sales
+    funnel (Research/Plan B/Plan A/Deal/Done) — these are live/installed sites."""
+    __tablename__ = "install_record"
+
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(10), index=True)       # "AP" or "OB" (Loại Hình)
+    region = db.Column(db.String(10), index=True)         # derived "MN"/"MB" from city
+    stt = db.Column(db.Integer)
+    report_code = db.Column(db.String(120))
+    name_of_block = db.Column(db.String(255))
+    address_detail = db.Column(db.String(255))
+    ward = db.Column(db.String(120))
+    city = db.Column(db.String(120), index=True)
+    dp_inside = db.Column(db.Integer)                      # DP — Digital Poster inside elevator
+    dp_outside = db.Column(db.Integer)                     # DP/LCD — Digital Poster outside
+    total = db.Column(db.Integer)                          # Total screens
+    operational_status = db.Column(db.String(60), index=True)  # ON AIR / ON GOING ...
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "category": self.category,
+            "region": self.region,
+            "stt": self.stt,
+            "report_code": self.report_code,
+            "name_of_block": self.name_of_block,
+            "address_detail": self.address_detail,
+            "ward": self.ward,
+            "city": self.city,
+            "dp_inside": self.dp_inside,
+            "dp_outside": self.dp_outside,
+            "total": self.total,
+            "operational_status": self.operational_status,
+        }
+
+
 class WeeklyGrowth(db.Model):
     """Weekly snapshot of screen counts per funnel stage (for growth chart)."""
     __tablename__ = "weekly_growth"
