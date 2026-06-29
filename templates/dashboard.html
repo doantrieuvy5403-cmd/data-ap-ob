@@ -44,16 +44,25 @@
     </div>
 </div>
 
-<!-- Weekly Growth -->
+<!-- Weekly Growth: screens -->
 <div class="bg-white rounded-xl shadow p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần</h2>
-        <span class="text-xs text-gray-500">Trục tung: số lượng màn hình · Theo dữ liệu tỉ lệ chuyển đổi</span>
+        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần — Màn hình</h2>
+        <span class="text-xs text-gray-500">Trục tung: số lượng màn hình · gồm AP + OB</span>
     </div>
     <canvas id="weeklyChart" height="90"></canvas>
     <p id="weeklyHint" class="text-xs text-gray-400 mt-3 hidden">
         Hiện mới có dữ liệu của tuần này. Mỗi tuần hệ thống sẽ tự ghi nhận thêm 1 điểm để tạo đường tăng trưởng.
     </p>
+</div>
+
+<!-- Weekly Growth: blocks -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần — Blocks</h2>
+        <span class="text-xs text-gray-500">Trục tung: số lượng block · gồm AP + OB</span>
+    </div>
+    <canvas id="weeklyBlockChart" height="90"></canvas>
 </div>
 
 <!-- Person Workload Table -->
@@ -164,44 +173,49 @@ fetch('/api/stats?category={{ category }}')
             screenDonut('obSUM', 'obSUMcap', 'Tổng MN + MB', sp.OB.SUM.done, sp.OB.SUM.target);
         }
 
-        // ---- Weekly growth line chart ----
+        // ---- Weekly growth line charts (screens + blocks, AP + OB) ----
         const wk = data.weekly_growth;
         if (wk.labels.length <= 1) document.getElementById('weeklyHint').classList.remove('hidden');
-        const lineSeries = [
-            { label: 'Plan B', key: 'plan_b', color: '#f97316' },
-            { label: 'Plan A', key: 'plan_a', color: '#f59e0b' },
-            { label: 'Deal', key: 'deal', color: '#3b82f6' },
-            { label: 'Done', key: 'done', color: '#10b981' },
-        ];
-        new Chart(document.getElementById('weeklyChart'), {
-            type: 'line',
-            data: {
-                labels: wk.labels,
-                datasets: lineSeries.map(s => ({
-                    label: s.label,
-                    data: wk[s.key],
-                    borderColor: s.color,
-                    backgroundColor: s.color,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    borderWidth: 2,
-                    fill: false
-                }))
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'Số lượng màn hình' } },
-                    x: { title: { display: true, text: 'Tuần' } }
+
+        function weeklyLine(canvasId, suffix, yLabel) {
+            const series = [
+                { label: 'Plan B', key: 'plan_b', color: '#f97316' },
+                { label: 'Plan A', key: 'plan_a', color: '#f59e0b' },
+                { label: 'Deal', key: 'deal', color: '#3b82f6' },
+                { label: 'Done', key: 'done', color: '#10b981' },
+            ];
+            new Chart(document.getElementById(canvasId), {
+                type: 'line',
+                data: {
+                    labels: wk.labels,
+                    datasets: series.map(s => ({
+                        label: s.label,
+                        data: wk[s.key + suffix],
+                        borderColor: s.color,
+                        backgroundColor: s.color,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2,
+                        fill: false
+                    }))
                 },
-                plugins: {
-                    legend: { position: 'bottom' },
-                    datalabels: { align: 'top', anchor: 'end', font: { size: 10, weight: 'bold' } }
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: yLabel } },
+                        x: { title: { display: true, text: 'Tuần' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: { align: 'top', anchor: 'end', font: { size: 10, weight: 'bold' } }
+                    }
                 }
-            }
-        });
+            });
+        }
+        weeklyLine('weeklyChart', '', 'Số lượng màn hình');
+        weeklyLine('weeklyBlockChart', '_blocks', 'Số lượng block');
 
         // ---- Person workload table ----
         const stages = data.funnel_stages;

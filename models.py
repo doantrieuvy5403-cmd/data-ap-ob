@@ -116,10 +116,16 @@ class WeeklyGrowth(db.Model):
     category = db.Column(db.String(10), nullable=False, default='AP')  # "AP" or "OB"
     year = db.Column(db.Integer, nullable=False)
     week = db.Column(db.Integer, nullable=False)
+    # Screen totals per stage
     plan_b = db.Column(db.Integer, default=0)
     plan_a = db.Column(db.Integer, default=0)
     deal = db.Column(db.Integer, default=0)
     done = db.Column(db.Integer, default=0)
+    # Block totals per stage
+    plan_b_blocks = db.Column(db.Integer, default=0)
+    plan_a_blocks = db.Column(db.Integer, default=0)
+    deal_blocks = db.Column(db.Integer, default=0)
+    done_blocks = db.Column(db.Integer, default=0)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint('category', 'year', 'week', name='uq_weekly_cat_year_week'),)

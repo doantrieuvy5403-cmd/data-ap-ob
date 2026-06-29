@@ -429,6 +429,8 @@ def _ensure_schema():
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
+    for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
+        add_col('weekly_growth', col, f"{col} INTEGER DEFAULT 0")
 
     # Drop legacy UNIQUE(year, week) on weekly_growth — now keyed by (category, year, week)
     if 'weekly_growth' in tables and db.engine.name == 'postgresql':
@@ -767,22 +769,29 @@ def _snapshot_current_week():
         rows = db.session.query(
             ApartmentRecord.status,
             db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
+            db.func.coalesce(db.func.sum(ApartmentRecord.num_blocks), 0),
         ).filter(
             ApartmentRecord.status.in_(CONVERSION_STAGES),
             ApartmentRecord.category == category,
         ).group_by(ApartmentRecord.status).all()
-        totals = {s: 0 for s in CONVERSION_STAGES}
-        for status, screens in rows:
-            totals[status] = int(screens or 0)
+        screens = {s: 0 for s in CONVERSION_STAGES}
+        blocks = {s: 0 for s in CONVERSION_STAGES}
+        for status, sc, bl in rows:
+            screens[status] = int(sc or 0)
+            blocks[status] = int(bl or 0)
 
         snap = WeeklyGrowth.query.filter_by(category=category, year=year, week=week).first()
         if not snap:
             snap = WeeklyGrowth(category=category, year=year, week=week)
             db.session.add(snap)
-        snap.plan_b = totals['Plan B']
-        snap.plan_a = totals['Plan A']
-        snap.deal = totals['Deal']
-        snap.done = totals['Done']
+        snap.plan_b = screens['Plan B']
+        snap.plan_a = screens['Plan A']
+        snap.deal = screens['Deal']
+        snap.done = screens['Done']
+        snap.plan_b_blocks = blocks['Plan B']
+        snap.plan_a_blocks = blocks['Plan A']
+        snap.deal_blocks = blocks['Deal']
+        snap.done_blocks = blocks['Done']
         snap.updated_at = now
     db.session.commit()
 
@@ -802,26 +811,23 @@ def _weekly_growth_series(category=None):
         q = q.filter_by(category=category)
     snaps = q.order_by(WeeklyGrowth.year, WeeklyGrowth.week).all()
 
-    # Aggregate by (year, week) so "All" sums categories into one point
+    # Aggregate by (year, week) so "All" sums categories (AP + OB) into one point
+    metrics = ['plan_b', 'plan_a', 'deal', 'done',
+               'plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks']
     buckets = {}
     order = []
     for s in snaps:
         key = (s.year, s.week)
         if key not in buckets:
-            buckets[key] = {'plan_b': 0, 'plan_a': 0, 'deal': 0, 'done': 0}
+            buckets[key] = {m: 0 for m in metrics}
             order.append(key)
-        buckets[key]['plan_b'] += s.plan_b or 0
-        buckets[key]['plan_a'] += s.plan_a or 0
-        buckets[key]['deal'] += s.deal or 0
-        buckets[key]['done'] += s.done or 0
+        for m in metrics:
+            buckets[key][m] += getattr(s, m, 0) or 0
 
-    return {
-        'labels': [f'Tuần {w}' for (_, w) in order],
-        'plan_b': [buckets[k]['plan_b'] for k in order],
-        'plan_a': [buckets[k]['plan_a'] for k in order],
-        'deal': [buckets[k]['deal'] for k in order],
-        'done': [buckets[k]['done'] for k in order],
-    }
+    out = {'labels': [f'Tuần {w}' for (_, w) in order]}
+    for m in metrics:
+        out[m] = [buckets[k][m] for k in order]
+    return out
 
 
 @app.route('/conversion')
