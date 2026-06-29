@@ -938,26 +938,33 @@ def api_stats():
         db.func.count(ApartmentRecord.id)
     ).filter(ApartmentRecord.infrastructure.isnot(None)).group_by(ApartmentRecord.infrastructure).all()
 
-    # Classification distribution — normalize (trim whitespace) so accidental
-    # variants like ' B' merge into 'B'. Also build a grouped A/B/C view where
-    # A±/B±/C± collapse to A/B/C (non A/B/C values are dropped).
-    class_stats_raw = scoped(db.session.query(
+    # Classification distribution — across ALL regions (MB + MT + MN), split by
+    # AP and OB, counting only projects in the funnel (Research..Done). Labels
+    # are normalized (trim) so ' B' merges into 'B'; non A/B/C values dropped.
+    class_rows = db.session.query(
+        ApartmentRecord.category,
         ApartmentRecord.classification,
-        db.func.count(ApartmentRecord.id)
-    ).filter(ApartmentRecord.classification.isnot(None))).group_by(ApartmentRecord.classification).all()
-    class_norm = {}
-    class_grouped = {'A': 0, 'B': 0, 'C': 0}
-    for label, cnt in class_stats_raw:
+        db.func.count(ApartmentRecord.id),
+    ).filter(
+        ApartmentRecord.classification.isnot(None),
+        ApartmentRecord.status.in_(FUNNEL_STAGES),
+    ).group_by(ApartmentRecord.category, ApartmentRecord.classification).all()
+
+    ABC = ('A', 'B', 'C')
+    cls_detail = {'AP': {}, 'OB': {}}
+    cls_grouped = {'AP': {k: 0 for k in ABC}, 'OB': {k: 0 for k in ABC}}
+    for cat, label, cnt in class_rows:
+        if cat not in ('AP', 'OB'):
+            continue
         name = str(label).strip()
         if not name:
             continue
         first = name[0].upper()
-        # Keep only real classification grades (A/B/C family); drop junk values
-        if first not in class_grouped:
+        if first not in ABC:
             continue
-        class_norm[name] = class_norm.get(name, 0) + cnt
-        class_grouped[first] += cnt
-    class_stats = sorted(class_norm.items())
+        cls_detail[cat][name] = cls_detail[cat].get(name, 0) + cnt
+        cls_grouped[cat][first] += cnt
+    detail_labels = sorted(set(cls_detail['AP']) | set(cls_detail['OB']))
 
     # MN vs MB by status
     region_status = db.session.query(
@@ -996,8 +1003,16 @@ def api_stats():
         'city': [{'label': c[0], 'count': c[1]} for c in city_stats][:10],  # Top 10
         'person': [{'label': p[0], 'count': p[1]} for p in person_stats],
         'infrastructure': [{'label': i[0], 'count': i[1]} for i in infra_stats if i[0]],
-        'classification': [{'label': c[0], 'count': c[1]} for c in class_stats if c[0]],
-        'classification_grouped': [{'label': k, 'count': class_grouped[k]} for k in ('A', 'B', 'C')],
+        'classification_detail': {
+            'labels': detail_labels,
+            'AP': [cls_detail['AP'].get(l, 0) for l in detail_labels],
+            'OB': [cls_detail['OB'].get(l, 0) for l in detail_labels],
+        },
+        'classification_grouped': {
+            'labels': list(ABC),
+            'AP': [cls_grouped['AP'][k] for k in ABC],
+            'OB': [cls_grouped['OB'][k] for k in ABC],
+        },
         'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]]
     })
 

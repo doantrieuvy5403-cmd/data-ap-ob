@@ -100,15 +100,21 @@
 </div>
 
 <!-- Classification -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại — chi tiết (AP vs OB)</h2>
+    <p class="text-xs text-gray-500 mb-4">Chỉ tính dự án ở giai đoạn Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
+    <canvas id="classChart" height="100"></canvas>
+</div>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ (chi tiết)</h2>
-        <canvas id="classChart" height="120"></canvas>
+        <h2 class="text-lg font-bold text-gray-800 mb-1">Gộp A / B / C — AP (Căn hộ)</h2>
+        <p class="text-xs text-gray-500 mb-2">A± → A · B± → B · C± → C · Research → Done · cả 3 miền</p>
+        <canvas id="classGroupAP" height="120"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ — gộp A / B / C</h2>
-        <p class="text-xs text-gray-500 mb-2">A± gộp về A · B± gộp về B · C± gộp về C</p>
-        <canvas id="classGroupChart" height="120"></canvas>
+        <h2 class="text-lg font-bold text-gray-800 mb-1">Gộp A / B / C — OB (Văn phòng)</h2>
+        <p class="text-xs text-gray-500 mb-2">A± → A · B± → B · C± → C · Research → Done · cả 3 miền</p>
+        <canvas id="classGroupOB" height="120"></canvas>
     </div>
 </div>
 
@@ -276,43 +282,54 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-xs text-blue-700">Toàn đội: ${apPctTotal}%</td>
             <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
-        // ---- Classification (Bar, detailed) ----
+        // ---- Classification detailed: AP vs OB (grouped bar) ----
+        const cd = data.classification_detail || { labels: [], AP: [], OB: [] };
         new Chart(document.getElementById('classChart'), {
             type: 'bar',
             data: {
-                labels: data.classification.map(c => c.label),
-                datasets: [{ label: 'Số dự án', data: data.classification.map(c => c.count), backgroundColor: '#8b5cf6' }]
+                labels: cd.labels,
+                datasets: [
+                    { label: 'AP', data: cd.AP, backgroundColor: '#3b82f6' },
+                    { label: 'OB', data: cd.OB, backgroundColor: '#14b8a6' },
+                ]
             },
             options: {
                 responsive: true,
                 scales: { y: { beginAtZero: true } },
-                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
-            }
-        });
-
-        // ---- Classification grouped A/B/C (Pie) ----
-        const cg = data.classification_grouped || [];
-        new Chart(document.getElementById('classGroupChart'), {
-            type: 'pie',
-            data: {
-                labels: cg.map(c => c.label),
-                datasets: [{ data: cg.map(c => c.count), backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
-            },
-            options: {
-                responsive: true,
                 plugins: {
                     legend: { position: 'bottom' },
-                    datalabels: {
-                        color: '#fff', font: { weight: 'bold', size: 13 },
-                        formatter: (v, ctx) => {
-                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            const pct = total ? (v / total * 100).toFixed(1) : 0;
-                            return v ? `${ctx.chart.data.labels[ctx.dataIndex]}: ${v} (${pct}%)` : '';
-                        }
-                    }
+                    datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
                 }
             }
         });
+
+        // ---- Classification grouped A/B/C, one pie per category ----
+        const cg = data.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
+        function abcPie(canvasId, arr) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'pie',
+                data: {
+                    labels: cg.labels,
+                    datasets: [{ data: arr, backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: {
+                            color: '#fff', font: { weight: 'bold', size: 13 },
+                            formatter: (v, ctx) => {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total ? (v / total * 100).toFixed(1) : 0;
+                                return v ? `${ctx.chart.data.labels[ctx.dataIndex]}: ${v} (${pct}%)` : '';
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        abcPie('classGroupAP', cg.AP);
+        abcPie('classGroupOB', cg.OB);
     });
 </script>
 {% endblock %}
