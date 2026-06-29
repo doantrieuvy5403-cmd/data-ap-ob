@@ -151,7 +151,8 @@ FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
 FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Done': 1.0}
 
 # Screen targets per category (the chart name encodes the total target).
-# "done" = sum of total_screens across ALL funnel stages (Research..Done).
+# "done" = sum of total_screens across these stages (Research EXCLUDED).
+SCREEN_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
 SCREEN_TARGETS = {
     'AP': {'name': 'P6000', 'MB': 3000, 'MN': 3000},
     'OB': {'name': 'P1000', 'MB': 500, 'MN': 500},
@@ -171,7 +172,7 @@ def _screen_progress():
             ).filter(
                 ApartmentRecord.category == cat,
                 ApartmentRecord.region == reg,
-                ApartmentRecord.status.in_(FUNNEL_STAGES),
+                ApartmentRecord.status.in_(SCREEN_STAGES),
             ).scalar() or 0
             done = int(done)
             target = cfg[reg]
