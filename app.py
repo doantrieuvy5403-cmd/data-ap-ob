@@ -683,17 +683,15 @@ def edit_record(id):
     record = ApartmentRecord.query.get_or_404(id)
 
     if request.method == 'POST':
+        # Only the fields present on the form are updated; others (notes,
+        # approach_time, direction, p9000/p6000, prospect, team_assignment,
+        # address) are left untouched so they aren't wiped on edit.
         record.stt = request.form.get('stt', type=int)
-        record.team_assignment = request.form.get('team_assignment')
         record.person_in_charge = _join_persons(request.form)
         record.status = request.form.get('status')
-        record.approach_time = request.form.get('approach_time')
-        record.notes = request.form.get('notes')
         record.city = request.form.get('city')
-        record.direction = request.form.get('direction')
         record.building_name = request.form.get('building_name')
         record.district = request.form.get('district')
-        record.address = request.form.get('address')
         record.num_blocks = request.form.get('num_blocks', type=int)
         record.price_range = request.form.get('price_range')
         record.infrastructure = request.form.get('infrastructure')
@@ -703,9 +701,6 @@ def edit_record(id):
         record.total_screens = request.form.get('total_screens', type=int)
         record.screens_in_elevator = request.form.get('screens_in_elevator', type=int)
         record.screens_outside_elevator = request.form.get('screens_outside_elevator', type=int)
-        record.p9000 = request.form.get('p9000', type=int)
-        record.p6000 = request.form.get('p6000', type=int)
-        record.prospect = request.form.get('prospect')
         record.must_have = request.form.get('must_have') or None
 
         db.session.commit()
