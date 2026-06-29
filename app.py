@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 import io
 import os
+import re
 import hashlib
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -113,7 +114,33 @@ SEED_SHEETS = [
 INSTALL_FILE = 'install.xlsx'
 INSTALL_SHEET = 'List sale_DIGITAL BUILDING'
 INSTALL_SKIPROWS = 4  # header at row 2, data starts at row 4 (0-indexed)
-INSTALL_VERSION = '1'
+INSTALL_VERSION = '2-building'
+
+# Block-grouping: a building/project can have many blocks. Derive the project
+# name by cutting at a block keyword, or stripping a trailing block code.
+BLOCK_KEYWORDS = [' block ', ' tháp ', ' sảnh ', ' sky ']
+
+
+def _project_key(name):
+    """Derive the project/building name from a block name.
+
+    e.g. 'The Sun Avenue S01' & 'The Sun Avenue SA1' -> 'The Sun Avenue';
+         'The Privia Block A' -> 'The Privia'.
+    """
+    if not name:
+        return ''
+    s = str(name).strip()
+    low = s.lower()
+    for kw in BLOCK_KEYWORDS:
+        i = low.find(kw)
+        if i != -1:
+            return s[:i].strip().rstrip(' -').strip()
+    tokens = s.split()
+    if len(tokens) > 1:
+        last = tokens[-1]
+        if re.search(r'\d', last) or last.upper() in ('AP', 'OB') or (len(last) <= 2 and last.isalpha()):
+            return ' '.join(tokens[:-1]).rstrip(' -').strip()
+    return s
 # Column index (in the sheet) -> InstallRecord field
 INSTALL_COLUMNS = {
     0: 'stt', 1: 'category', 2: 'report_code', 4: 'name_of_block',
@@ -395,6 +422,7 @@ def _auto_seed_install():
                     val = str(val).strip()
                 setattr(rec, field, val)
             rec.region = _derive_region(rec.city)
+            rec.building = _project_key(rec.name_of_block)
             db.session.add(rec)
         db.session.commit()
         if meta is None:
@@ -427,6 +455,7 @@ def _ensure_schema():
     add_col('apartment_record', 'category', "category VARCHAR(10)",
             "UPDATE apartment_record SET category='AP' WHERE category IS NULL")
     add_col('apartment_record', 'address', "address VARCHAR(255)")
+    add_col('install_record', 'building', "building VARCHAR(255)")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
     for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
@@ -746,7 +775,7 @@ def _install_totals(region=None, category=None):
     q = db.session.query(
         db.func.coalesce(db.func.sum(InstallRecord.total), 0),
         db.func.count(InstallRecord.id),
-        db.func.count(db.distinct(InstallRecord.name_of_block)),
+        db.func.count(db.distinct(InstallRecord.building)),
     )
     if region:
         q = q.filter(InstallRecord.region == region)
@@ -1115,7 +1144,10 @@ def install():
             InstallRecord.ward.contains(search),
             InstallRecord.city.contains(search),
         ))
-    query = query.order_by(InstallRecord.stt.is_(None), InstallRecord.stt.asc(), InstallRecord.id.asc())
+    # Group blocks of the same project together (by building, then block name)
+    query = query.order_by(
+        InstallRecord.building.is_(None), InstallRecord.building.asc(),
+        InstallRecord.name_of_block.asc(), InstallRecord.id.asc())
 
     page = request.args.get('page', 1, type=int)
     records = query.paginate(page=page, per_page=50, error_out=False)
@@ -1136,6 +1168,7 @@ def _install_from_form(rec, form):
     rec.stt = form.get('stt', type=int)
     rec.report_code = form.get('report_code') or None
     rec.name_of_block = form.get('name_of_block') or None
+    rec.building = _project_key(rec.name_of_block)
     rec.address_detail = form.get('address_detail') or None
     rec.ward = form.get('ward') or None
     rec.city = form.get('city') or None
@@ -1247,6 +1280,7 @@ def install_import():
             if not rec.name_of_block and not rec.report_code:
                 continue
             rec.region = _derive_region(rec.city)
+            rec.building = _project_key(rec.name_of_block)
             db.session.add(rec)
             count += 1
         db.session.commit()

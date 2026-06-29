@@ -80,6 +80,7 @@ class InstallRecord(db.Model):
     stt = db.Column(db.Integer)
     report_code = db.Column(db.String(120))
     name_of_block = db.Column(db.String(255))
+    building = db.Column(db.String(255), index=True)  # derived project/building name
     address_detail = db.Column(db.String(255))
     ward = db.Column(db.String(120))
     city = db.Column(db.String(120), index=True)
@@ -98,6 +99,7 @@ class InstallRecord(db.Model):
             "stt": self.stt,
             "report_code": self.report_code,
             "name_of_block": self.name_of_block,
+            "building": self.building,
             "address_detail": self.address_detail,
             "ward": self.ward,
             "city": self.city,
