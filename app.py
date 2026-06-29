@@ -247,16 +247,16 @@ def _compute_person_progress(category=None):
         progress_project = round(weighted / total * 100, 1) if total else 0.0
         ap = ap_screens[disp]
         ob = ob_screens[disp]
-        ap_pct = (ap / target_ap * 100) if target_ap else 0
-        ob_pct = (ob / target_ob * 100) if target_ob else 0
-        progress_screen = round((ap_pct + ob_pct) / 2, 1)
+        progress_ap = round(ap / target_ap * 100, 1) if target_ap else 0.0
+        progress_ob = round(ob / target_ob * 100, 1) if target_ob else 0.0
         result.append({
             'person': disp,
             'team': team,
             'stages': stage_counts,
             'total': total,
             'progress': progress_project,
-            'progress_screen': progress_screen,
+            'progress_ap': progress_ap,
+            'progress_ob': progress_ob,
             'ap_screens': ap,
             'ob_screens': ob,
             'target_ap': round(target_ap, 1),

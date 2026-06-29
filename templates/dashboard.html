@@ -76,8 +76,8 @@
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Tổng</th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-blue-50">Target AP<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
                     <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-teal-50">Target OB<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ theo dự án</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ theo màn hình</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ màn hình AP</th>
+                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ màn hình OB</th>
                 </tr>
             </thead>
             <tbody id="personTableBody" class="divide-y divide-gray-100">
@@ -238,13 +238,13 @@ fetch('/api/stats?category={{ category }}')
                     <td class="px-4 py-3 text-center font-bold text-gray-900">${p.total}</td>
                     <td class="px-4 py-3 text-center bg-blue-50/40"><span class="font-semibold text-blue-700">${p.ap_screens}</span> <span class="text-gray-400">/ ${p.target_ap}</span></td>
                     <td class="px-4 py-3 text-center bg-teal-50/40"><span class="font-semibold text-teal-700">${p.ob_screens}</span> <span class="text-gray-400">/ ${p.target_ob}</span></td>
-                    <td class="px-4 py-3">${progressBar(p.progress)}</td>
-                    <td class="px-4 py-3">${progressBar(p.progress_screen)}</td>
+                    <td class="px-4 py-3">${progressBar(p.progress_ap)}</td>
+                    <td class="px-4 py-3">${progressBar(p.progress_ob)}</td>
                 </tr>`);
         });
 
-        const tgtTotal = totals.tgtAp + totals.tgtOb;
-        const screenPctTotal = tgtTotal ? Math.round((totals.ap + totals.ob) / tgtTotal * 1000) / 10 : 0;
+        const apPctTotal = totals.tgtAp ? Math.round(totals.ap / totals.tgtAp * 1000) / 10 : 0;
+        const obPctTotal = totals.tgtOb ? Math.round(totals.ob / totals.tgtOb * 1000) / 10 : 0;
         document.getElementById('personTableFoot').innerHTML = `
             <td class="px-4 py-3">Tổng cộng</td>
             <td class="px-4 py-3"></td>
@@ -252,8 +252,8 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-center">${totals.total}</td>
             <td class="px-4 py-3 text-center text-blue-700">${totals.ap} / ${Math.round(totals.tgtAp)}</td>
             <td class="px-4 py-3 text-center text-teal-700">${totals.ob} / ${Math.round(totals.tgtOb)}</td>
-            <td class="px-4 py-3"></td>
-            <td class="px-4 py-3 text-xs text-gray-600">Toàn đội: ${screenPctTotal}%</td>`;
+            <td class="px-4 py-3 text-xs text-blue-700">Toàn đội: ${apPctTotal}%</td>
+            <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
         // ---- Classification (Bar) ----
         new Chart(document.getElementById('classChart'), {
