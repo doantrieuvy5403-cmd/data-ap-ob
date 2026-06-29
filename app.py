@@ -150,6 +150,42 @@ DASHBOARD_PERSONS = [
 FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
 FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Done': 1.0}
 
+# Screen targets per category (the chart name encodes the total target).
+# "done" = sum of total_screens across ALL funnel stages (Research..Done).
+SCREEN_TARGETS = {
+    'AP': {'name': 'P6000', 'MB': 3000, 'MN': 3000},
+    'OB': {'name': 'P1000', 'MB': 500, 'MN': 500},
+}
+
+
+def _screen_progress():
+    """Per-category screen progress vs target (for the P6000/P1000 donuts)."""
+    result = {}
+    for cat, cfg in SCREEN_TARGETS.items():
+        sum_done = 0
+        sum_target = 0
+        regions = {}
+        for reg in ('MB', 'MN'):
+            done = db.session.query(
+                db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
+            ).filter(
+                ApartmentRecord.category == cat,
+                ApartmentRecord.region == reg,
+                ApartmentRecord.status.in_(FUNNEL_STAGES),
+            ).scalar() or 0
+            done = int(done)
+            target = cfg[reg]
+            regions[reg] = {'done': done, 'target': target}
+            sum_done += done
+            sum_target += target
+        result[cat] = {
+            'name': cfg['name'],
+            'MB': regions['MB'],
+            'MN': regions['MN'],
+            'SUM': {'done': sum_done, 'target': sum_target},
+        }
+    return result
+
 
 def _compute_person_progress(category=None):
     """Per-person project counts across funnel stages + completion %."""
@@ -844,6 +880,7 @@ def api_stats():
         },
         'person_progress': _compute_person_progress(category),
         'weekly_growth': _weekly_growth_series(category),
+        'screen_progress': _screen_progress(),
         'funnel_stages': FUNNEL_STAGES,
         'status': [{'label': s[0], 'count': s[1]} for s in status_stats if s[0]],
         'city': [{'label': c[0], 'count': c[1]} for c in city_stats][:10],  # Top 10

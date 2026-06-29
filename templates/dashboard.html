@@ -19,6 +19,31 @@
     </form>
 </div>
 
+<!-- Screen targets: P6000 (AP) & P1000 (OB) -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800"><span id="p6000Title">P6000</span> — Tiến độ màn hình (AP)</h2>
+        <span class="text-xs text-gray-500">Đã thực hiện = tổng màn ở mọi giai đoạn (Research → Done)</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center"><canvas id="apMB" height="180"></canvas><p id="apMBcap" class="text-xs mt-2"></p></div>
+        <div class="text-center"><canvas id="apMN" height="180"></canvas><p id="apMNcap" class="text-xs mt-2"></p></div>
+        <div class="text-center"><canvas id="apSUM" height="180"></canvas><p id="apSUMcap" class="text-xs mt-2"></p></div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800"><span id="p1000Title">P1000</span> — Tiến độ màn hình (OB)</h2>
+        <span class="text-xs text-gray-500">Đã thực hiện = tổng màn ở mọi giai đoạn (Research → Done)</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center"><canvas id="obMB" height="180"></canvas><p id="obMBcap" class="text-xs mt-2"></p></div>
+        <div class="text-center"><canvas id="obMN" height="180"></canvas><p id="obMNcap" class="text-xs mt-2"></p></div>
+        <div class="text-center"><canvas id="obSUM" height="180"></canvas><p id="obSUMcap" class="text-xs mt-2"></p></div>
+    </div>
+</div>
+
 <!-- Weekly Growth -->
 <div class="bg-white rounded-xl shadow p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
@@ -85,6 +110,56 @@ function progressColor(pct) {
 fetch('/api/stats?category={{ category }}')
     .then(response => response.json())
     .then(data => {
+        // ---- Screen target donuts (P6000 / P1000) ----
+        function screenDonut(canvasId, capId, title, done, target) {
+            const filled = Math.min(done, target);          // slice capped at target
+            const remaining = Math.max(0, target - done);
+            const pctDone = target ? (done / target * 100) : 0;
+            const pctRemain = target ? (remaining / target * 100) : 0;
+            new Chart(document.getElementById(canvasId), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã thực hiện', 'Còn lại'],
+                    datasets: [{
+                        data: [filled, remaining],
+                        backgroundColor: ['#3b82f6', '#e5e7eb'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                        title: { display: true, text: title, font: { size: 14, weight: 'bold' } },
+                        tooltip: { callbacks: { label: c => `${c.label}: ${c.raw} màn` } },
+                        datalabels: {
+                            color: ctx => ctx.dataIndex === 0 ? '#fff' : '#6b7280',
+                            font: { weight: 'bold', size: 12 },
+                            formatter: v => v ? v : ''
+                        }
+                    }
+                }
+            });
+            document.getElementById(capId).innerHTML =
+                `<span class="text-blue-600 font-semibold">Đã: ${done} màn (${pctDone.toFixed(1)}%)</span> · ` +
+                `<span class="text-gray-500">Còn lại: ${remaining} màn (${pctRemain.toFixed(1)}%)</span><br>` +
+                `<span class="text-gray-400">Mục tiêu: ${target} màn</span>`;
+        }
+
+        const sp = data.screen_progress;
+        if (sp) {
+            document.getElementById('p6000Title').textContent = sp.AP.name;
+            screenDonut('apMB', 'apMBcap', 'Miền Bắc', sp.AP.MB.done, sp.AP.MB.target);
+            screenDonut('apMN', 'apMNcap', 'Miền Nam', sp.AP.MN.done, sp.AP.MN.target);
+            screenDonut('apSUM', 'apSUMcap', 'Tổng MN + MB', sp.AP.SUM.done, sp.AP.SUM.target);
+
+            document.getElementById('p1000Title').textContent = sp.OB.name;
+            screenDonut('obMB', 'obMBcap', 'Miền Bắc', sp.OB.MB.done, sp.OB.MB.target);
+            screenDonut('obMN', 'obMNcap', 'Miền Nam', sp.OB.MN.done, sp.OB.MN.target);
+            screenDonut('obSUM', 'obSUMcap', 'Tổng MN + MB', sp.OB.SUM.done, sp.OB.SUM.target);
+        }
+
         // ---- Weekly growth line chart ----
         const wk = data.weekly_growth;
         if (wk.labels.length <= 1) document.getElementById('weeklyHint').classList.remove('hidden');
