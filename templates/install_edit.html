@@ -10,11 +10,26 @@
 
 <form method="POST" class="bg-white rounded-lg shadow p-6 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- STT -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">STT</label>
             <input type="number" name="stt" value="{{ record.stt if record else next_stt }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
+        <!-- Report Code -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Report Code</label>
+            <input type="text" name="report_code" value="{{ record.report_code if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <!-- Name of Block -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Name of Block</label>
+            <input type="text" name="name_of_block" value="{{ record.name_of_block if record else '' }}"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-400 mt-1">Dự án (toà nhà) tự suy ra từ tên block</p>
+        </div>
+        <!-- Loại Hình -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Loại Hình</label>
             <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -24,52 +39,39 @@
                 {% endfor %}
             </select>
         </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Report Code</label>
-            <input type="text" name="report_code" value="{{ record.report_code if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Name of Block</label>
-            <input type="text" name="name_of_block" value="{{ record.name_of_block if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
+        <!-- Address Detail -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Address Detail</label>
             <input type="text" name="address_detail" value="{{ record.address_detail if record else '' }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
+        <!-- Ward -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Ward</label>
             <input type="text" name="ward" value="{{ record.ward if record else '' }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
+        <!-- City -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
             <input type="text" name="city" value="{{ record.city if record else '' }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
+        <!-- Total -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">DP (trong thang)</label>
-            <input type="number" name="dp_inside" value="{{ record.dp_inside if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">DP/LCD (ngoài thang)</label>
-            <input type="number" name="dp_outside" value="{{ record.dp_outside if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Total (thiết kế = DP trong + ngoài)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
             <input type="number" name="total" value="{{ record.total if record else '' }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
+        <!-- Total thực tế triển khai -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Total thực tế triển khai</label>
             <input type="number" name="total_deployed" value="{{ record.total_deployed if record else '' }}"
                    placeholder="Mặc định = Total (nếu để trống)"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-400 mt-1">Loading % = thực tế / Total (tự tính)</p>
         </div>
+        <!-- Operational Status -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Operational Status</label>
             <input type="text" name="operational_status" value="{{ record.operational_status if record else '' }}"

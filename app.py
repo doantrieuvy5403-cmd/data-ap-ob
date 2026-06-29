@@ -1211,8 +1211,7 @@ def _install_from_form(rec, form):
     rec.address_detail = form.get('address_detail') or None
     rec.ward = form.get('ward') or None
     rec.city = form.get('city') or None
-    rec.dp_inside = form.get('dp_inside', type=int)
-    rec.dp_outside = form.get('dp_outside', type=int)
+    # DP inside/outside are not on the form anymore (kept in DB; left untouched).
     rec.total = form.get('total', type=int)
     rec.total_deployed = form.get('total_deployed', type=int)
     if rec.total_deployed is None:
