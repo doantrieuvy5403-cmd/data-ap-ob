@@ -1070,14 +1070,17 @@ def import_data(category, region):
         flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
+    back = redirect(url_for('database', category=category.lower(), region=region.lower()))
     if 'file' not in request.files:
-        flash('No file uploaded', 'error')
-        return redirect(url_for('import_export'))
+        flash('Chưa chọn file', 'error')
+        return back
 
     file = request.files['file']
     if file.filename == '':
-        flash('No file selected', 'error')
-        return redirect(url_for('import_export'))
+        flash('Chưa chọn file', 'error')
+        return back
+
+    mode = request.form.get('mode', 'append')
 
     try:
         # Read file
@@ -1114,6 +1117,10 @@ def import_data(category, region):
         }
         df = df.rename(columns=column_map)
 
+        # Replace mode: clear existing records for this category + region first
+        if mode == 'replace':
+            ApartmentRecord.query.filter_by(category=category, region=region).delete()
+
         # Add records
         count = 0
         for _, row in df.iterrows():
@@ -1123,16 +1130,20 @@ def import_data(category, region):
                     value = row[col]
                     if pd.notna(value):
                         setattr(record, col, value if not isinstance(value, (int, float)) else int(value))
+            # Skip blank rows (no building name)
+            if not record.building_name:
+                continue
             db.session.add(record)
             count += 1
 
         db.session.commit()
-        flash(f'Successfully imported {count} records', 'success')
+        verb = 'thay thế toàn bộ bằng' if mode == 'replace' else 'thêm'
+        flash(f'Đã {verb} {count} bản ghi ({category} {region})', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error importing file: {str(e)}', 'error')
+        flash(f'Lỗi import: {str(e)}', 'error')
 
-    return redirect(url_for('database', category=category.lower(), region=region.lower()))
+    return back
 
 
 @app.route('/import-export')

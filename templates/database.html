@@ -19,6 +19,33 @@
     </div>
 </div>
 
+<!-- Import / Export -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="{{ url_for('export_data', category=category.lower(), region=region.lower()) }}"
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition">
+            ⬇ Export Excel ({{ category }} {{ region }})
+        </a>
+        <form method="POST" action="{{ url_for('import_data', category=category.lower(), region=region.lower()) }}"
+              enctype="multipart/form-data" class="flex flex-wrap items-center gap-2"
+              onsubmit="if(this.mode.value==='replace'){return confirm('Thay thế TOÀN BỘ dữ liệu {{ category }} {{ region }} hiện tại bằng file này?');}return true;">
+            <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                   class="text-sm text-gray-600 file:mr-2 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700">
+            <select name="mode" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="append">Thêm vào</option>
+                <option value="replace">Thay thế toàn bộ</option>
+            </select>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                ⬆ Import
+            </button>
+        </form>
+    </div>
+    <p class="text-xs text-gray-400 mt-2">
+        Export tải về file Excel của đúng nhóm {{ category }} {{ region }}. Import: "Thêm vào" giữ dữ liệu cũ và thêm mới;
+        "Thay thế toàn bộ" xoá hết dữ liệu {{ category }} {{ region }} hiện tại rồi nạp từ file.
+    </p>
+</div>
+
 <!-- Filters -->
 <div class="bg-white rounded-lg shadow p-6 mb-6">
     <form method="GET" class="space-y-4">
