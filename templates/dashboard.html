@@ -100,9 +100,16 @@
 </div>
 
 <!-- Classification -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ</h2>
-    <canvas id="classChart" height="90"></canvas>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ (chi tiết)</h2>
+        <canvas id="classChart" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại căn hộ — gộp A / B / C</h2>
+        <p class="text-xs text-gray-500 mb-2">A± gộp về A · B± gộp về B · C± gộp về C</p>
+        <canvas id="classGroupChart" height="120"></canvas>
+    </div>
 </div>
 
 {% endblock %}
@@ -164,13 +171,13 @@ fetch('/api/stats?category={{ category }}')
         if (sp) {
             document.getElementById('p6000Title').textContent = sp.AP.name;
             screenDonut('apMB', 'apMBcap', 'Miền Bắc', sp.AP.MB.done, sp.AP.MB.target);
-            screenDonut('apMN', 'apMNcap', 'Miền Nam', sp.AP.MN.done, sp.AP.MN.target);
-            screenDonut('apSUM', 'apSUMcap', 'Tổng MN + MB', sp.AP.SUM.done, sp.AP.SUM.target);
+            screenDonut('apMN', 'apMNcap', 'Miền Nam + Miền Trung', sp.AP.MN.done, sp.AP.MN.target);
+            screenDonut('apSUM', 'apSUMcap', 'Tổng (cả nước)', sp.AP.SUM.done, sp.AP.SUM.target);
 
             document.getElementById('p1000Title').textContent = sp.OB.name;
             screenDonut('obMB', 'obMBcap', 'Miền Bắc', sp.OB.MB.done, sp.OB.MB.target);
-            screenDonut('obMN', 'obMNcap', 'Miền Nam', sp.OB.MN.done, sp.OB.MN.target);
-            screenDonut('obSUM', 'obSUMcap', 'Tổng MN + MB', sp.OB.SUM.done, sp.OB.SUM.target);
+            screenDonut('obMN', 'obMNcap', 'Miền Nam + Miền Trung', sp.OB.MN.done, sp.OB.MN.target);
+            screenDonut('obSUM', 'obSUMcap', 'Tổng (cả nước)', sp.OB.SUM.done, sp.OB.SUM.target);
         }
 
         // ---- Weekly growth line charts (screens + blocks, AP + OB) ----
@@ -269,7 +276,7 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-xs text-blue-700">Toàn đội: ${apPctTotal}%</td>
             <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
-        // ---- Classification (Bar) ----
+        // ---- Classification (Bar, detailed) ----
         new Chart(document.getElementById('classChart'), {
             type: 'bar',
             data: {
@@ -280,6 +287,30 @@ fetch('/api/stats?category={{ category }}')
                 responsive: true,
                 scales: { y: { beginAtZero: true } },
                 plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top' } }
+            }
+        });
+
+        // ---- Classification grouped A/B/C (Pie) ----
+        const cg = data.classification_grouped || [];
+        new Chart(document.getElementById('classGroupChart'), {
+            type: 'pie',
+            data: {
+                labels: cg.map(c => c.label),
+                datasets: [{ data: cg.map(c => c.count), backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#fff', font: { weight: 'bold', size: 13 },
+                        formatter: (v, ctx) => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total ? (v / total * 100).toFixed(1) : 0;
+                            return v ? `${ctx.chart.data.labels[ctx.dataIndex]}: ${v} (${pct}%)` : '';
+                        }
+                    }
+                }
             }
         });
     });

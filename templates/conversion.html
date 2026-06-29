@@ -67,8 +67,9 @@
         <label class="text-sm font-medium text-gray-700 ml-2">Khu vực:</label>
         <select name="region" onchange="this.form.submit()"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="" {% if not region %}selected{% endif %}>Tất cả (MN + MB)</option>
+            <option value="" {% if not region %}selected{% endif %}>Tất cả (MN + MT + MB)</option>
             <option value="MN" {% if region == 'MN' %}selected{% endif %}>Miền Nam</option>
+            <option value="MT" {% if region == 'MT' %}selected{% endif %}>Miền Trung</option>
             <option value="MB" {% if region == 'MB' %}selected{% endif %}>Miền Bắc</option>
         </select>
     </form>

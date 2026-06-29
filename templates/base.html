@@ -44,6 +44,10 @@
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
                     <span class="font-medium">🏢 AP Miền Nam</span>
                 </a>
+                <a href="{{ url_for('database', category='ap', region='mt') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mt' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">🏢 AP Miền Trung</span>
+                </a>
                 <a href="{{ url_for('database', category='ap', region='mb') }}"
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mb' %}bg-slate-800{% endif %}">
                     <span class="font-medium">🏢 AP Miền Bắc</span>
@@ -55,6 +59,10 @@
                 <a href="{{ url_for('database', category='ob', region='mn') }}"
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
                     <span class="font-medium">🏬 OB Miền Nam</span>
+                </a>
+                <a href="{{ url_for('database', category='ob', region='mt') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mt' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">🏬 OB Miền Trung</span>
                 </a>
                 <a href="{{ url_for('database', category='ob', region='mb') }}"
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mb' %}bg-slate-800{% endif %}">

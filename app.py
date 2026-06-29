@@ -100,13 +100,15 @@ INT_FIELDS = ['stt', 'num_blocks', 'total_screens', 'screens_in_elevator',
               'screens_outside_elevator', 'p9000', 'p6000']
 
 # Bump when the seed logic changes (forces a one-time reseed even if data.xlsx is unchanged)
-SEED_VERSION = '3-update-2026-06-26'
+SEED_VERSION = '4-mt-region-2026-07'
 
 # (sheet_name, category, region, skiprows, column_map, screen_sum_cols)
 SEED_SHEETS = [
     ('Databse AP_MN', 'AP', 'MN', 11, SEED_COLUMNS_AP, None),
+    ('Databse AP_MT', 'AP', 'MT', 12, SEED_COLUMNS_AP, None),
     ('Databse AP_MB', 'AP', 'MB', 12, SEED_COLUMNS_AP, None),
     ('Databse OB_MN (A,B)', 'OB', 'MN', 13, SEED_COLUMNS_OB, OB_SCREEN_COLS),
+    ('Databse OB_MT (A,B)', 'OB', 'MT', 11, SEED_COLUMNS_OB, OB_SCREEN_COLS),
     ('Databse OB_MB (A,B,C)', 'OB', 'MB', 12, SEED_COLUMNS_OB, OB_SCREEN_COLS),
 ]
 
@@ -114,7 +116,7 @@ SEED_SHEETS = [
 INSTALL_FILE = 'install.xlsx'
 INSTALL_SHEET = 'List sale_DIGITAL BUILDING'
 INSTALL_SKIPROWS = 4  # header at row 2, data starts at row 4 (0-indexed)
-INSTALL_VERSION = '2-building'
+INSTALL_VERSION = '3-deployed'
 
 # Block-grouping: a building/project can have many blocks. Derive the project
 # name by cutting at a block keyword, or stripping a trailing block code.
@@ -151,10 +153,16 @@ INSTALL_INT_FIELDS = ['stt', 'dp_inside', 'dp_outside', 'total']
 
 
 def _derive_region(city):
-    """Best-effort MN/MB from a city name (install data has no region column)."""
+    """Best-effort MB/MT/MN from a city name (install data has no region column)."""
     c = (city or '').lower()
     north = ['hà nội', 'ha noi', 'hanoi', 'hải phòng', 'hai phong', 'bắc ninh',
-             'quảng ninh', 'hà nam', 'nam định', 'thái', 'vĩnh phúc', 'bắc']
+             'quảng ninh', 'hà nam', 'nam định', 'thái', 'vĩnh phúc', 'bắc', 'hưng yên']
+    central = ['đà nẵng', 'da nang', 'huế', 'hue', 'quảng nam', 'quảng ngãi',
+               'quy nhơn', 'bình định', 'nha trang', 'khánh hòa', 'phú yên',
+               'quảng bình', 'quảng trị', 'hà tĩnh', 'nghệ an', 'thanh hóa',
+               'đà lạt', 'lâm đồng', 'pleiku', 'gia lai', 'kon tum', 'buôn ma thuột', 'đắk lắk']
+    if any(k in c for k in central):
+        return 'MT'
     return 'MB' if any(k in c for k in north) else 'MN'
 
 
@@ -182,15 +190,20 @@ FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Do
 
 # Screen targets per category (the chart name encodes the total target).
 # "done" = sum of total_screens across these stages (Research EXCLUDED).
+# The "MN" bucket combines Miền Nam + Miền Trung into one figure/chart.
 SCREEN_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
+SCREEN_REGION_GROUPS = {'MB': ['MB'], 'MN': ['MN', 'MT']}
 SCREEN_TARGETS = {
-    'AP': {'name': 'P6000', 'MB': 3000, 'MN': 3000},
-    'OB': {'name': 'P1000', 'MB': 500, 'MN': 500},
+    'AP': {'name': 'P6000', 'MB': 2500, 'MN': 3500},
+    'OB': {'name': 'P1000', 'MB': 450, 'MN': 550},
 }
 
 
 def _screen_progress():
-    """Per-category screen progress vs target (for the P6000/P1000 donuts)."""
+    """Per-category screen progress vs target (for the P6000/P1000 donuts).
+
+    MB = Miền Bắc; MN = Miền Nam + Miền Trung (combined).
+    """
     result = {}
     for cat, cfg in SCREEN_TARGETS.items():
         sum_done = 0
@@ -201,7 +214,7 @@ def _screen_progress():
                 db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
             ).filter(
                 ApartmentRecord.category == cat,
-                ApartmentRecord.region == reg,
+                ApartmentRecord.region.in_(SCREEN_REGION_GROUPS[reg]),
                 ApartmentRecord.status.in_(SCREEN_STAGES),
             ).scalar() or 0
             done = int(done)
@@ -423,6 +436,10 @@ def _auto_seed_install():
                 setattr(rec, field, val)
             rec.region = _derive_region(rec.city)
             rec.building = _project_key(rec.name_of_block)
+            # Default actually-deployed = designed total (assume fully on air);
+            # edit later to track partially-loaded buildings.
+            if rec.total_deployed is None:
+                rec.total_deployed = rec.total
             db.session.add(rec)
         db.session.commit()
         if meta is None:
@@ -456,6 +473,7 @@ def _ensure_schema():
             "UPDATE apartment_record SET category='AP' WHERE category IS NULL")
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('install_record', 'building', "building VARCHAR(255)")
+    add_col('install_record', 'total_deployed', "total_deployed INTEGER")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
     for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
@@ -503,8 +521,10 @@ def index():
         return ApartmentRecord.query.filter_by(category=category, region=region).count()
 
     ap_mn = count('AP', 'MN')
+    ap_mt = count('AP', 'MT')
     ap_mb = count('AP', 'MB')
     ob_mn = count('OB', 'MN')
+    ob_mt = count('OB', 'MT')
     ob_mb = count('OB', 'MB')
 
     # Status breakdown (fixed display order: 2 rows of 5)
@@ -520,14 +540,16 @@ def index():
 
     return render_template('index.html',
                          ap_mn=ap_mn,
+                         ap_mt=ap_mt,
                          ap_mb=ap_mb,
                          ob_mn=ob_mn,
+                         ob_mt=ob_mt,
                          ob_mb=ob_mb,
                          status_stats=status_stats)
 
 
 def _valid_cat_region(category, region):
-    return category in ('AP', 'OB') and region in ('MN', 'MB')
+    return category in ('AP', 'OB') and region in ('MN', 'MT', 'MB')
 
 
 def _join_persons(form):
@@ -771,16 +793,21 @@ def _install_totals(region=None, category=None):
         db.func.coalesce(db.func.sum(InstallRecord.total), 0),
         db.func.count(InstallRecord.id),
         db.func.count(db.distinct(InstallRecord.building)),
+        db.func.coalesce(db.func.sum(InstallRecord.total_deployed), 0),
     )
     if region:
         q = q.filter(InstallRecord.region == region)
     if category:
         q = q.filter(InstallRecord.category == category)
-    screens, blocks, buildings = q.one()
+    screens, blocks, buildings, deployed = q.one()
+    screens = int(screens or 0)
+    deployed = int(deployed or 0)
     return {
-        'screens': int(screens or 0),
+        'screens': screens,
         'blocks': int(blocks or 0),
         'buildings': int(buildings or 0),
+        'deployed': deployed,
+        'loading_pct': round(deployed / screens * 100, 1) if screens else 0.0,
     }
 
 
@@ -859,7 +886,7 @@ def _weekly_growth_series(category=None):
 def conversion():
     """Tỷ lệ chuyển đổi: two tables (all vs must-have), updated weekly."""
     region = request.args.get('region', '').upper()
-    region = region if region in ('MN', 'MB') else None
+    region = region if region in ('MN', 'MT', 'MB') else None
     category = request.args.get('category', '').upper()
     category = category if category in ('AP', 'OB') else None
 
@@ -911,11 +938,26 @@ def api_stats():
         db.func.count(ApartmentRecord.id)
     ).filter(ApartmentRecord.infrastructure.isnot(None)).group_by(ApartmentRecord.infrastructure).all()
 
-    # Classification distribution
-    class_stats = scoped(db.session.query(
+    # Classification distribution — normalize (trim whitespace) so accidental
+    # variants like ' B' merge into 'B'. Also build a grouped A/B/C view where
+    # A±/B±/C± collapse to A/B/C (non A/B/C values are dropped).
+    class_stats_raw = scoped(db.session.query(
         ApartmentRecord.classification,
         db.func.count(ApartmentRecord.id)
     ).filter(ApartmentRecord.classification.isnot(None))).group_by(ApartmentRecord.classification).all()
+    class_norm = {}
+    class_grouped = {'A': 0, 'B': 0, 'C': 0}
+    for label, cnt in class_stats_raw:
+        name = str(label).strip()
+        if not name:
+            continue
+        first = name[0].upper()
+        # Keep only real classification grades (A/B/C family); drop junk values
+        if first not in class_grouped:
+            continue
+        class_norm[name] = class_norm.get(name, 0) + cnt
+        class_grouped[first] += cnt
+    class_stats = sorted(class_norm.items())
 
     # MN vs MB by status
     region_status = db.session.query(
@@ -955,6 +997,7 @@ def api_stats():
         'person': [{'label': p[0], 'count': p[1]} for p in person_stats],
         'infrastructure': [{'label': i[0], 'count': i[1]} for i in infra_stats if i[0]],
         'classification': [{'label': c[0], 'count': c[1]} for c in class_stats if c[0]],
+        'classification_grouped': [{'label': k, 'count': class_grouped[k]} for k in ('A', 'B', 'C')],
         'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]]
     })
 
@@ -1112,6 +1155,7 @@ INSTALL_EXPORT_COLUMNS = [
     ('dp_inside', 'DP (Inside Elevator)'),
     ('dp_outside', 'DP/LCD (Outside)'),
     ('total', 'Total'),
+    ('total_deployed', 'Total thực tế triển khai'),
     ('operational_status', 'Operational Status'),
     ('category', 'Loại Hình'),
 ]
@@ -1170,6 +1214,9 @@ def _install_from_form(rec, form):
     rec.dp_inside = form.get('dp_inside', type=int)
     rec.dp_outside = form.get('dp_outside', type=int)
     rec.total = form.get('total', type=int)
+    rec.total_deployed = form.get('total_deployed', type=int)
+    if rec.total_deployed is None:
+        rec.total_deployed = rec.total
     rec.operational_status = form.get('operational_status') or None
     cat = (form.get('category') or '').upper()
     rec.category = cat if cat in ('AP', 'OB') else None

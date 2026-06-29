@@ -8,7 +8,7 @@
         <div>
             <h1 class="text-3xl font-bold text-gray-800">
                 Database {{ category }} ({% if category == 'AP' %}Căn hộ{% else %}Văn phòng{% endif %})
-                — {% if region == 'MN' %}Miền Nam{% else %}Miền Bắc{% endif %}
+                — {% if region == 'MN' %}Miền Nam{% elif region == 'MT' %}Miền Trung{% else %}Miền Bắc{% endif %}
             </h1>
             <p class="text-gray-600 mt-2">Tổng số: {{ records.total }} records</p>
         </div>

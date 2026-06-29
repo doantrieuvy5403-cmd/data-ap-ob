@@ -86,7 +86,8 @@ class InstallRecord(db.Model):
     city = db.Column(db.String(120), index=True)
     dp_inside = db.Column(db.Integer)                      # DP — Digital Poster inside elevator
     dp_outside = db.Column(db.Integer)                     # DP/LCD — Digital Poster outside
-    total = db.Column(db.Integer)                          # Total screens
+    total = db.Column(db.Integer)                          # Total screens (designed = dp_inside + dp_outside)
+    total_deployed = db.Column(db.Integer)                 # Total thực tế triển khai (actually installed)
     operational_status = db.Column(db.String(60), index=True)  # ON AIR / ON GOING ...
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -106,6 +107,7 @@ class InstallRecord(db.Model):
             "dp_inside": self.dp_inside,
             "dp_outside": self.dp_outside,
             "total": self.total,
+            "total_deployed": self.total_deployed,
             "operational_status": self.operational_status,
         }
 
