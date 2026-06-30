@@ -149,7 +149,7 @@ INSTALL_COLUMNS = {
     6: 'address_detail', 7: 'ward', 8: 'city',
     19: 'dp_inside', 20: 'dp_outside', 21: 'total', 22: 'operational_status',
 }
-INSTALL_INT_FIELDS = ['stt', 'dp_inside', 'dp_outside', 'total']
+INSTALL_INT_FIELDS = ['stt', 'dp_inside', 'dp_outside', 'total', 'total_deployed']
 
 
 def _derive_region(city):
@@ -1017,52 +1017,67 @@ def api_stats():
     })
 
 
+# AP/OB Excel columns — EXACT order of the database table/form. person_in_charge
+# is split across 3 "Người PT" columns. Auxiliary/computed fields are excluded.
+APOB_COLUMNS = [
+    ('STT', 'stt'),
+    ('Tên chung cư', 'building_name'),
+    ('Số Block', 'num_blocks'),
+    ('Quận', 'district'),
+    ('Thành phố', 'city'),
+    ('Trạng thái', 'status'),
+    ('Người PT1', 'pt1'),
+    ('Người PT2', 'pt2'),
+    ('Người PT3', 'pt3'),
+    ('Phân loại', 'classification'),
+    ('Must have', 'must_have'),
+    ('Giá bán', 'price_range'),
+    ('CSVC', 'infrastructure'),
+    ('Tỷ lệ lấp đầy', 'occupancy'),
+    ('Đơn vị cũ', 'previous_operator'),
+    ('Màn trong thang', 'screens_in_elevator'),
+    ('Màn ngoài thang', 'screens_outside_elevator'),
+    ('Tổng SL màn', 'total_screens'),
+]
+APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens'}
+# Accept a few legacy/alias header names on import (old exports / variants)
+APOB_IMPORT_ALIASES = {
+    'Quận/Khu vực': 'district', 'TP/Tỉnh': 'city', 'Tiến độ': 'status',
+    'Tổng SL màn hình': 'total_screens', 'Số màn trong thang': 'screens_in_elevator',
+    'Số màn ngoài thang': 'screens_outside_elevator',
+}
+
+
 @app.route('/export/<category>/<region>')
 @login_required
 def export_data(category, region):
-    """Export data as Excel"""
+    """Export data as Excel matching the database table/form columns & order."""
     category = category.upper()
     region = region.upper()
     if not _valid_cat_region(category, region):
         flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
-    records = ApartmentRecord.query.filter_by(category=category, region=region).all()
+    records = ApartmentRecord.query.filter_by(category=category, region=region).order_by(
+        ApartmentRecord.stt.is_(None), ApartmentRecord.stt.asc(), ApartmentRecord.id.asc()).all()
 
-    # Convert to DataFrame
-    data = [r.to_dict() for r in records]
-    df = pd.DataFrame(data)
+    rows = []
+    for r in records:
+        pts = [p.strip() for p in str(r.person_in_charge or '').split(',') if p.strip()]
+        pts += ['', '', '']
+        row = {}
+        for label, field in APOB_COLUMNS:
+            if field == 'pt1':
+                row[label] = pts[0]
+            elif field == 'pt2':
+                row[label] = pts[1]
+            elif field == 'pt3':
+                row[label] = pts[2]
+            else:
+                row[label] = getattr(r, field)
+        rows.append(row)
+    df = pd.DataFrame(rows, columns=[label for label, _ in APOB_COLUMNS])
 
-    # Rename columns to Vietnamese
-    column_map = {
-        'stt': 'STT',
-        'team_assignment': 'NS. Phân công',
-        'person_in_charge': 'NS. Phụ trách',
-        'status': 'Tiến độ',
-        'approach_time': 'Thời gian tiếp cận',
-        'notes': 'Ghi chú',
-        'city': 'TP/Tỉnh',
-        'direction': 'Hướng',
-        'building_name': 'Tên chung cư',
-        'district': 'Quận/Khu vực',
-        'num_blocks': 'Số Block',
-        'price_range': 'Giá bán',
-        'infrastructure': 'CSVC',
-        'occupancy': 'Tỷ lệ lấp đầy',
-        'classification': 'Phân loại',
-        'previous_operator': 'Đơn vị cũ',
-        'total_screens': 'Tổng SL màn hình',
-        'screens_in_elevator': 'Số màn trong thang',
-        'screens_outside_elevator': 'Số màn ngoài thang',
-        'p9000': 'P9000',
-        'p6000': 'P6000',
-        'prospect': 'Prospect',
-        'must_have': 'Must have'
-    }
-    df = df.rename(columns=column_map)
-    df = df.drop(columns=['id', 'category', 'region', 'created_at', 'updated_at'], errors='ignore')
-
-    # Save to Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name=f'{category}_{region}')
@@ -1104,33 +1119,10 @@ def import_data(category, region):
         else:
             df = pd.read_excel(file)
 
-        # Map Vietnamese columns to English
-        column_map = {
-            'STT': 'stt',
-            'NS. Phân công': 'team_assignment',
-            'NS. Phụ trách': 'person_in_charge',
-            'Tiến độ': 'status',
-            'Thời gian tiếp cận': 'approach_time',
-            'Ghi chú': 'notes',
-            'TP/Tỉnh': 'city',
-            'Hướng': 'direction',
-            'Tên chung cư': 'building_name',
-            'Quận/Khu vực': 'district',
-            'Số Block': 'num_blocks',
-            'Giá bán': 'price_range',
-            'CSVC': 'infrastructure',
-            'Tỷ lệ lấp đầy': 'occupancy',
-            'Phân loại': 'classification',
-            'Đơn vị cũ': 'previous_operator',
-            'Tổng SL màn hình': 'total_screens',
-            'Số màn trong thang': 'screens_in_elevator',
-            'Số màn ngoài thang': 'screens_outside_elevator',
-            'P9000': 'p9000',
-            'P6000': 'p6000',
-            'Prospect': 'prospect',
-            'Must have': 'must_have'
-        }
-        df = df.rename(columns=column_map)
+        # Label -> field map (table columns + a few aliases). person handled below.
+        field_for = {label: field for label, field in APOB_COLUMNS
+                     if field not in ('pt1', 'pt2', 'pt3')}
+        field_for.update(APOB_IMPORT_ALIASES)
 
         # Replace mode: clear existing records for this category + region first
         if mode == 'replace':
@@ -1140,11 +1132,32 @@ def import_data(category, region):
         count = 0
         for _, row in df.iterrows():
             record = ApartmentRecord(category=category, region=region)
-            for col in column_map.values():
-                if col in row:
-                    value = row[col]
-                    if pd.notna(value):
-                        setattr(record, col, value if not isinstance(value, (int, float)) else int(value))
+            for label in df.columns:
+                field = field_for.get(str(label).strip())
+                if not field:
+                    continue
+                value = row[label]
+                if pd.isna(value):
+                    continue
+                if field in APOB_INT_FIELDS:
+                    try:
+                        value = int(float(str(value).replace("'", "").replace(",", "")))
+                    except (ValueError, TypeError):
+                        continue
+                else:
+                    value = str(value).strip()
+                setattr(record, field, value)
+            # Recombine Người PT1/2/3 -> person_in_charge (or legacy single column)
+            pts = []
+            for c in ('Người PT1', 'Người PT2', 'Người PT3'):
+                if c in df.columns and pd.notna(row.get(c)):
+                    t = str(row[c]).strip()
+                    if t:
+                        pts.append(t)
+            if pts:
+                record.person_in_charge = ', '.join(pts)
+            elif 'NS. Phụ trách' in df.columns and pd.notna(row.get('NS. Phụ trách')):
+                record.person_in_charge = str(row['NS. Phụ trách']).strip()
             # Skip blank rows (no building name)
             if not record.building_name:
                 continue
@@ -1171,20 +1184,24 @@ def import_export():
 # ----------------------------------------------------------------------------
 # DataBase Install (Digital Building) — installed sites, with import/export
 # ----------------------------------------------------------------------------
-INSTALL_EXPORT_COLUMNS = [
-    ('stt', 'STT'),
-    ('report_code', 'Report Code'),
-    ('name_of_block', 'Name of Block'),
-    ('address_detail', 'Address Detail'),
-    ('ward', 'Ward'),
-    ('city', 'City'),
-    ('dp_inside', 'DP (Inside Elevator)'),
-    ('dp_outside', 'DP/LCD (Outside)'),
-    ('total', 'Total'),
-    ('total_deployed', 'Total thực tế triển khai'),
-    ('operational_status', 'Operational Status'),
-    ('category', 'Loại Hình'),
+# Install Excel columns — EXACT order of the Install table. 'building' & 'loading'
+# are computed (recomputed on import); kept in the file for readability.
+INSTALL_COLUMNS_OUT = [
+    ('STT', 'stt'),
+    ('Dự án (toà nhà)', 'building'),
+    ('Report Code', 'report_code'),
+    ('Name of Block', 'name_of_block'),
+    ('Loại Hình', 'category'),
+    ('Address Detail', 'address_detail'),
+    ('Ward', 'ward'),
+    ('City', 'city'),
+    ('Total', 'total'),
+    ('Total thực tế triển khai', 'total_deployed'),
+    ('Loading %', 'loading'),
+    ('Operational Status', 'operational_status'),
 ]
+# Import aliases (old export headers still importable)
+INSTALL_IMPORT_ALIASES = {'DP (Inside Elevator)': 'dp_inside', 'DP/LCD (Outside)': 'dp_outside'}
 
 
 @app.route('/install')
@@ -1288,12 +1305,19 @@ def install_delete(id):
 @login_required
 def install_export():
     records = InstallRecord.query.order_by(
-        InstallRecord.stt.is_(None), InstallRecord.stt.asc(), InstallRecord.id.asc()).all()
+        InstallRecord.building.is_(None), InstallRecord.building.asc(),
+        InstallRecord.name_of_block.asc(), InstallRecord.id.asc()).all()
     rows = []
     for r in records:
-        d = r.to_dict()
-        rows.append({label: d.get(field) for field, label in INSTALL_EXPORT_COLUMNS})
-    df = pd.DataFrame(rows, columns=[label for _, label in INSTALL_EXPORT_COLUMNS])
+        row = {}
+        for label, field in INSTALL_COLUMNS_OUT:
+            if field == 'loading':
+                row[label] = (round(r.total_deployed / r.total * 100, 1)
+                              if (r.total and r.total_deployed is not None) else None)
+            else:
+                row[label] = getattr(r, field)
+        rows.append(row)
+    df = pd.DataFrame(rows, columns=[label for label, _ in INSTALL_COLUMNS_OUT])
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Install')
@@ -1316,8 +1340,10 @@ def install_import():
             df = pd.read_csv(file)
         else:
             df = pd.read_excel(file)
-        label_to_field = {label: field for field, label in INSTALL_EXPORT_COLUMNS}
-        df = df.rename(columns=label_to_field)
+        # Label -> field (skip computed 'building'/'loading'; recomputed below)
+        field_for = {label: field for label, field in INSTALL_COLUMNS_OUT
+                     if field not in ('building', 'loading')}
+        field_for.update(INSTALL_IMPORT_ALIASES)
 
         if replace:
             InstallRecord.query.delete()
@@ -1326,10 +1352,11 @@ def install_import():
         count = 0
         for _, row in df.iterrows():
             rec = InstallRecord()
-            for field in label_to_field.values():
-                if field not in row:
+            for label in df.columns:
+                field = field_for.get(str(label).strip())
+                if not field:
                     continue
-                val = row[field]
+                val = row[label]
                 if pd.isna(val):
                     continue
                 if field in INSTALL_INT_FIELDS:
@@ -1348,6 +1375,8 @@ def install_import():
                 continue
             rec.region = _derive_region(rec.city)
             rec.building = _project_key(rec.name_of_block)
+            if rec.total_deployed is None:
+                rec.total_deployed = rec.total
             db.session.add(rec)
             count += 1
         db.session.commit()
