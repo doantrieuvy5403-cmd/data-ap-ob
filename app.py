@@ -1165,6 +1165,7 @@ def install_export():
         ('Loại Hình', 'category'),
         ('Quận', 'district'),
         ('City', 'city'),
+        ('Số Block', 'num_blocks'),
         ('Trạng thái', 'status'),
         ('Total (Thiết kế)', 'total_screens'),
         ('Total thực tế triển khai', 'total_deployed'),
