@@ -35,6 +35,8 @@ class ApartmentRecord(db.Model):
     prospect = db.Column(db.String(100))
     must_have = db.Column(db.String(20), index=True)  # "Must have" or None
     total_deployed = db.Column(db.Integer, default=0)
+    electricity_status = db.Column(db.String(50))
+    install_note = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -68,6 +70,8 @@ class ApartmentRecord(db.Model):
             "prospect": self.prospect,
             "must_have": self.must_have,
             "total_deployed": self.total_deployed,
+            "electricity_status": self.electricity_status,
+            "install_note": self.install_note,
         }
 
 

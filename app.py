@@ -372,6 +372,8 @@ def _ensure_schema():
             "UPDATE apartment_record SET category='AP' WHERE category IS NULL")
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('apartment_record', 'total_deployed', "total_deployed INTEGER DEFAULT 0")
+    add_col('apartment_record', 'electricity_status', "electricity_status VARCHAR(50)")
+    add_col('apartment_record', 'install_note', "install_note TEXT")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
     for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
@@ -551,33 +553,37 @@ def add_record(category, region):
         flash('Invalid category/region', 'error')
         return redirect(url_for('index'))
 
+    def get_upper(key):
+        val = request.form.get(key)
+        return val.strip().upper() if val and isinstance(val, str) else val
+
     if request.method == 'POST':
         record = ApartmentRecord(
             category=category,
             region=region,
             stt=request.form.get('stt', type=int),
-            team_assignment=request.form.get('team_assignment'),
-            person_in_charge=_join_persons(request.form),
+            team_assignment=get_upper('team_assignment'),
+            person_in_charge=_join_persons(request.form).upper() if _join_persons(request.form) else None,
             status=request.form.get('status'),
-            approach_time=request.form.get('approach_time'),
-            notes=request.form.get('notes'),
-            city=request.form.get('city'),
-            direction=request.form.get('direction'),
-            building_name=request.form.get('building_name'),
-            district=request.form.get('district'),
-            address=request.form.get('address'),
+            approach_time=get_upper('approach_time'),
+            notes=get_upper('notes'),
+            city=get_upper('city'),
+            direction=get_upper('direction'),
+            building_name=get_upper('building_name'),
+            district=get_upper('district'),
+            address=get_upper('address'),
             num_blocks=request.form.get('num_blocks', type=int),
-            price_range=request.form.get('price_range'),
+            price_range=get_upper('price_range'),
             infrastructure=request.form.get('infrastructure'),
-            occupancy=request.form.get('occupancy'),
-            classification=request.form.get('classification'),
-            previous_operator=request.form.get('previous_operator'),
+            occupancy=get_upper('occupancy'),
+            classification=get_upper('classification'),
+            previous_operator=get_upper('previous_operator'),
             total_screens=request.form.get('total_screens', type=int),
             screens_in_elevator=request.form.get('screens_in_elevator', type=int),
             screens_outside_elevator=request.form.get('screens_outside_elevator', type=int),
             p9000=request.form.get('p9000', type=int),
             p6000=request.form.get('p6000', type=int),
-            prospect=request.form.get('prospect'),
+            prospect=get_upper('prospect'),
             must_have=request.form.get('must_have') or None
         )
         db.session.add(record)
@@ -599,23 +605,27 @@ def edit_record(id):
     record = ApartmentRecord.query.get_or_404(id)
 
     if request.method == 'POST':
+        def get_upper(key):
+            val = request.form.get(key)
+            return val.strip().upper() if val and isinstance(val, str) else val
+
         # Only the fields present on the form are updated; others (notes,
         # approach_time, direction, p9000/p6000, prospect, team_assignment,
         # address) are left untouched so they aren't wiped on edit.
         record.stt = request.form.get('stt', type=int)
-        record.person_in_charge = _join_persons(request.form)
+        record.person_in_charge = _join_persons(request.form).upper() if _join_persons(request.form) else None
         record.status = request.form.get('status')
         if record.status == 'Deal':
             record.total_deployed = 0
-        record.city = request.form.get('city')
-        record.building_name = request.form.get('building_name')
-        record.district = request.form.get('district')
+        record.city = get_upper('city')
+        record.building_name = get_upper('building_name')
+        record.district = get_upper('district')
         record.num_blocks = request.form.get('num_blocks', type=int)
-        record.price_range = request.form.get('price_range')
+        record.price_range = get_upper('price_range')
         record.infrastructure = request.form.get('infrastructure')
-        record.occupancy = request.form.get('occupancy')
-        record.classification = request.form.get('classification')
-        record.previous_operator = request.form.get('previous_operator')
+        record.occupancy = get_upper('occupancy')
+        record.classification = get_upper('classification')
+        record.previous_operator = get_upper('previous_operator')
         record.total_screens = request.form.get('total_screens', type=int)
         record.screens_in_elevator = request.form.get('screens_in_elevator', type=int)
         record.screens_outside_elevator = request.form.get('screens_outside_elevator', type=int)
@@ -1144,8 +1154,10 @@ def install_edit(id):
             flash('Dự án đang ở trạng thái Deal, vui lòng sang Database chuyển trạng thái thành Done trước khi nhập số lượng triển khai.', 'error')
         else:
             rec.total_deployed = total_deployed
+            rec.electricity_status = request.form.get('electricity_status')
+            rec.install_note = request.form.get('install_note')
             db.session.commit()
-            flash('Đã cập nhật số lượng triển khai thực tế', 'success')
+            flash('Đã cập nhật thông tin triển khai', 'success')
             return redirect(url_for('install'))
     return render_template('install_edit.html', record=rec)
 
@@ -1171,6 +1183,8 @@ def install_export():
         ('Total (Thiết kế)', 'total_screens'),
         ('Total thực tế triển khai', 'total_deployed'),
         ('Loading %', 'loading'),
+        ('Tình trạng', 'electricity_status'),
+        ('Ghi chú', 'install_note'),
     ]
 
     rows = []

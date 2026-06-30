@@ -99,7 +99,7 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    {% for h in ['STT','Dự án (toà nhà)','Khu vực','Loại Hình','Quận','City','Số Block','Trạng thái','Total (Thiết kế)','Total thực tế triển khai','Loading %','Thao tác'] %}
+                    {% for h in ['STT','Dự án (toà nhà)','Khu vực','Loại Hình','Quận','City','Số Block','Trạng thái','Total (Thiết kế)','Total thực tế triển khai','Loading %','Tình trạng','Ghi chú','Thao tác'] %}
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ h }}</th>
                     {% endfor %}
                 </tr>
@@ -140,6 +140,17 @@
                             <span class="text-gray-300">—</span>
                         {% endif %}
                     </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        {% if r.electricity_status %}
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if r.electricity_status == 'Đã đi điện' %}bg-green-100 text-green-800
+                            {% elif r.electricity_status == 'Chưa đi điện' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ r.electricity_status }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title="{{ r.install_note or '' }}">{{ r.install_note or '' }}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                         <div class="flex gap-2">
                             <a href="{{ url_for('install_edit', id=r.id) }}" class="text-blue-600 hover:text-blue-800 font-medium">Sửa thực tế</a>
