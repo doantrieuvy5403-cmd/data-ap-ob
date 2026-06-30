@@ -1162,6 +1162,7 @@ def install_export():
     columns = [
         ('STT', 'stt'),
         ('Dự án (toà nhà)', 'building_name'),
+        ('Khu vực', 'region'),
         ('Loại Hình', 'category'),
         ('Quận', 'district'),
         ('City', 'city'),
