@@ -42,11 +42,25 @@
 
 <!-- Filters + Import/Export -->
 <div class="bg-white rounded-lg shadow p-6 mb-6">
-    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm chung cư</label>
+            <input type="text" name="search" value="{{ search }}" list="building-names" placeholder="Tên chung cư, địa chỉ..."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" autocomplete="off">
+            <datalist id="building-names">
+                {% for b in building_names %}
+                <option value="{{ b }}">
+                {% endfor %}
+            </datalist>
+        </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
-            <input type="text" name="search" value="{{ search }}" placeholder="Tên block, report code, địa chỉ..."
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Thành phố</label>
+            <select name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">Tất cả</option>
+                {% for c in cities %}
+                    <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Loại Hình</label>
@@ -56,8 +70,16 @@
                 <option value="OB" {% if category == 'OB' %}selected{% endif %}>OB</option>
             </select>
         </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+            <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">Deal / Done</option>
+                <option value="Deal" {% if status == 'Deal' %}selected{% endif %}>Deal</option>
+                <option value="Done" {% if status == 'Done' %}selected{% endif %}>Done</option>
+            </select>
+        </div>
 
-        <div class="flex items-end gap-2">
+        <div class="md:col-span-5 flex items-end gap-2">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">Lọc</button>
             <a href="{{ url_for('install') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition">Xóa lọc</a>
         </div>
@@ -85,7 +107,7 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for r in records.items %}
                 <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-sm text-gray-900">{{ r.stt if r.stt is not none else '' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">{{ loop.index + (records.page - 1) * records.per_page }}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-gray-700">{{ r.building_name or '' }}</td>
                     <td class="px-4 py-3 text-sm">
                         {% if r.category %}
@@ -135,11 +157,11 @@
             <div class="text-sm text-gray-700">Trang {{ records.page }} / {{ records.pages }} ({{ records.total }} bản ghi)</div>
             <div class="flex gap-2">
                 {% if records.has_prev %}
-                <a href="{{ url_for('install', page=records.prev_num, search=search, category=category) }}"
+                <a href="{{ url_for('install', page=records.prev_num, search=search, category=category, city=city, status=status) }}"
                    class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">← Trước</a>
                 {% endif %}
                 {% if records.has_next %}
-                <a href="{{ url_for('install', page=records.next_num, search=search, category=category) }}"
+                <a href="{{ url_for('install', page=records.next_num, search=search, category=category, city=city, status=status) }}"
                    class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Sau →</a>
                 {% endif %}
             </div>

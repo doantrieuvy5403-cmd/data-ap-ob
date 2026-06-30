@@ -1085,9 +1085,16 @@ def install():
     category = category if category in ('AP', 'OB') else ''
     search = request.args.get('search', '').strip()
 
+    city = request.args.get('city', '').strip()
+    status = request.args.get('status', '').strip()
+
     query = ApartmentRecord.query.filter(ApartmentRecord.status.in_(['Deal', 'Done']))
     if category:
         query = query.filter_by(category=category)
+    if city:
+        query = query.filter_by(city=city)
+    if status:
+        query = query.filter_by(status=status)
     if search:
         query = query.filter(db.or_(
             ApartmentRecord.building_name.contains(search),
@@ -1095,17 +1102,31 @@ def install():
             ApartmentRecord.city.contains(search),
         ))
     query = query.order_by(
+        ApartmentRecord.city.is_(None), ApartmentRecord.city.asc(),
+        ApartmentRecord.status.asc(),
         ApartmentRecord.building_name.is_(None), ApartmentRecord.building_name.asc(),
         ApartmentRecord.id.asc())
 
     page = request.args.get('page', 1, type=int)
     records = query.paginate(page=page, per_page=50, error_out=False)
+    
+    # Filter options for the UI
+    base_q = ApartmentRecord.query.filter(ApartmentRecord.status.in_(['Deal', 'Done']))
+    if category:
+        base_q = base_q.filter_by(category=category)
+    cities = [c[0] for c in base_q.with_entities(ApartmentRecord.city).distinct().all() if c[0]]
+    building_names = [b[0] for b in base_q.with_entities(ApartmentRecord.building_name).distinct().all() if b[0]]
+
 
     totals = _install_totals(category=category or None)
     return render_template('install.html',
                            records=records,
                            category=category,
                            search=search,
+                           city=city,
+                           status=status,
+                           cities=sorted(cities),
+                           building_names=sorted(building_names),
                            totals=totals)
 
 
@@ -1133,6 +1154,8 @@ def install_edit(id):
 @login_required
 def install_export():
     records = ApartmentRecord.query.filter(ApartmentRecord.status.in_(['Deal', 'Done'])).order_by(
+        ApartmentRecord.city.is_(None), ApartmentRecord.city.asc(),
+        ApartmentRecord.status.asc(),
         ApartmentRecord.building_name.is_(None), ApartmentRecord.building_name.asc(),
         ApartmentRecord.id.asc()).all()
 
@@ -1153,7 +1176,9 @@ def install_export():
         excel_row = i + 2  # header is row 1
         row = {}
         for label, field in columns:
-            if field == 'loading':
+            if field == 'stt':
+                row[label] = i + 1
+            elif field == 'loading':
                 # G is Total (Thiết kế), H is Total thực tế triển khai
                 row[label] = f'=IF(G{excel_row}>0,ROUND(H{excel_row}/G{excel_row}*100,1),"")'
             else:
