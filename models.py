@@ -34,6 +34,7 @@ class ApartmentRecord(db.Model):
     p6000 = db.Column(db.Integer)
     prospect = db.Column(db.String(100))
     must_have = db.Column(db.String(20), index=True)  # "Must have" or None
+    total_deployed = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -66,50 +67,9 @@ class ApartmentRecord(db.Model):
             "p6000": self.p6000,
             "prospect": self.prospect,
             "must_have": self.must_have,
-        }
-
-
-class InstallRecord(db.Model):
-    """Buildings already installed (Digital Building). Independent of the sales
-    funnel (Research/Plan B/Plan A/Deal/Done) — these are live/installed sites."""
-    __tablename__ = "install_record"
-
-    id = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.String(10), index=True)       # "AP" or "OB" (Loại Hình)
-    region = db.Column(db.String(10), index=True)         # derived "MN"/"MB" from city
-    stt = db.Column(db.Integer)
-    report_code = db.Column(db.String(120))
-    name_of_block = db.Column(db.String(255))
-    building = db.Column(db.String(255), index=True)  # derived project/building name
-    address_detail = db.Column(db.String(255))
-    ward = db.Column(db.String(120))
-    city = db.Column(db.String(120), index=True)
-    dp_inside = db.Column(db.Integer)                      # DP — Digital Poster inside elevator
-    dp_outside = db.Column(db.Integer)                     # DP/LCD — Digital Poster outside
-    total = db.Column(db.Integer)                          # Total screens (designed = dp_inside + dp_outside)
-    total_deployed = db.Column(db.Integer)                 # Total thực tế triển khai (actually installed)
-    operational_status = db.Column(db.String(60), index=True)  # ON AIR / ON GOING ...
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "category": self.category,
-            "region": self.region,
-            "stt": self.stt,
-            "report_code": self.report_code,
-            "name_of_block": self.name_of_block,
-            "building": self.building,
-            "address_detail": self.address_detail,
-            "ward": self.ward,
-            "city": self.city,
-            "dp_inside": self.dp_inside,
-            "dp_outside": self.dp_outside,
-            "total": self.total,
             "total_deployed": self.total_deployed,
-            "operational_status": self.operational_status,
         }
+
 
 
 class WeeklyGrowth(db.Model):

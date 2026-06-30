@@ -1,90 +1,44 @@
 {% extends "base.html" %}
 
-{% block title %}{% if record %}Sửa{% else %}Thêm{% endif %} Install - DATA AP OB{% endblock %}
+{% block title %}Cập nhật triển khai - DATA AP OB{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">{% if record %}Sửa bản ghi Install{% else %}Thêm bản ghi Install{% endif %}</h1>
-    <p class="text-gray-600 mt-2">DataBase Install — toà nhà đã lắp đặt</p>
+    <h1 class="text-3xl font-bold text-gray-800">Cập nhật số lượng triển khai</h1>
+    <p class="text-gray-600 mt-2">Dự án: <span class="font-semibold text-blue-600">{{ record.building_name }}</span></p>
 </div>
 
-<form method="POST" class="bg-white rounded-lg shadow p-6 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- STT -->
+<form method="POST" class="bg-white rounded-lg shadow p-6 space-y-6 max-w-2xl">
+    <div class="grid grid-cols-1 gap-6">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">STT</label>
-            <input type="number" name="stt" value="{{ record.stt if record else next_stt }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái hiện tại</label>
+            <input type="text" disabled value="{{ record.status }}" class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg">
+            {% if record.status == 'Deal' %}
+            <p class="text-xs text-red-600 mt-1 font-medium">Dự án đang ở trạng thái Deal, số lượng triển khai tự động bằng 0. Vui lòng chuyển trạng thái thành Done ở Database để nhập số lượng triển khai.</p>
+            {% endif %}
         </div>
-        <!-- Report Code -->
+
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Report Code</label>
-            <input type="text" name="report_code" value="{{ record.report_code if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Total (Thiết kế)</label>
+            <input type="text" disabled value="{{ record.total_screens or 0 }}" class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg">
         </div>
-        <!-- Name of Block -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Name of Block</label>
-            <input type="text" name="name_of_block" value="{{ record.name_of_block if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <p class="text-xs text-gray-400 mt-1">Dự án (toà nhà) tự suy ra từ tên block</p>
-        </div>
-        <!-- Loại Hình -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Loại Hình</label>
-            <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="">-- Chọn --</option>
-                {% for c in ['AP', 'OB'] %}
-                    <option value="{{ c }}" {% if record and record.category == c %}selected{% endif %}>{{ c }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <!-- Address Detail -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Address Detail</label>
-            <input type="text" name="address_detail" value="{{ record.address_detail if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <!-- Ward -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Ward</label>
-            <input type="text" name="ward" value="{{ record.ward if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <!-- City -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-            <input type="text" name="city" value="{{ record.city if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <!-- Total -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
-            <input type="number" name="total" value="{{ record.total if record else '' }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        </div>
-        <!-- Total thực tế triển khai -->
+
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Total thực tế triển khai</label>
-            <input type="number" name="total_deployed" value="{{ record.total_deployed if record else '' }}"
-                   placeholder="Mặc định = Total (nếu để trống)"
+            <input type="number" name="total_deployed" value="{{ record.total_deployed or 0 }}"
+                   {% if record.status == 'Deal' %}disabled{% endif %}
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <p class="text-xs text-gray-400 mt-1">Loading % = thực tế / Total (tự tính)</p>
-        </div>
-        <!-- Operational Status -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Operational Status</label>
-            <input type="text" name="operational_status" value="{{ record.operational_status if record else '' }}"
-                   placeholder="VD: ON AIR, ON GOING"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-400 mt-1">Chỉ có thể nhập khi dự án ở trạng thái Done.</p>
         </div>
     </div>
 
     <div class="flex gap-4 pt-4">
+        {% if record.status == 'Done' %}
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
-            {% if record %}Cập nhật{% else %}Thêm mới{% endif %}
+            Lưu thay đổi
         </button>
-        <a href="{{ url_for('install') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">Hủy</a>
+        {% endif %}
+        <a href="{{ url_for('install') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition">Quay lại</a>
     </div>
 </form>
 {% endblock %}
