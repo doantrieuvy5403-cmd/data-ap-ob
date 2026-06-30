@@ -1307,13 +1307,16 @@ def install_export():
     records = InstallRecord.query.order_by(
         InstallRecord.building.is_(None), InstallRecord.building.asc(),
         InstallRecord.name_of_block.asc(), InstallRecord.id.asc()).all()
+    # Loading % is written as a LIVE Excel formula referencing Total (col I) and
+    # Total thực tế triển khai (col J), so it recalculates if you edit the file.
+    # Column order in INSTALL_COLUMNS_OUT: I=Total, J=Total thực tế, K=Loading.
     rows = []
-    for r in records:
+    for i, r in enumerate(records):
+        excel_row = i + 2  # header is row 1
         row = {}
         for label, field in INSTALL_COLUMNS_OUT:
             if field == 'loading':
-                row[label] = (round(r.total_deployed / r.total * 100, 1)
-                              if (r.total and r.total_deployed is not None) else None)
+                row[label] = f'=IF(I{excel_row}>0,ROUND(J{excel_row}/I{excel_row}*100,1),"")'
             else:
                 row[label] = getattr(r, field)
         rows.append(row)
