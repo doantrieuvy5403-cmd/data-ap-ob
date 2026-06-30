@@ -843,13 +843,19 @@ def api_stats():
     # Classification distribution — across ALL regions (MB + MT + MN), split by
     # AP and OB, counting only projects in the funnel (Research..Done). Labels
     # are normalized (trim) so ' B' merges into 'B'; non A/B/C values dropped.
+    cls_stages = request.args.get('cls_stages')
+    if cls_stages:
+        cls_stages = [s.strip() for s in cls_stages.split(',')]
+    else:
+        cls_stages = FUNNEL_STAGES
+
     class_rows = db.session.query(
         ApartmentRecord.category,
         ApartmentRecord.classification,
         db.func.count(ApartmentRecord.id),
     ).filter(
         ApartmentRecord.classification.isnot(None),
-        ApartmentRecord.status.in_(FUNNEL_STAGES),
+        ApartmentRecord.status.in_(cls_stages),
     ).group_by(ApartmentRecord.category, ApartmentRecord.classification).all()
 
     ABC = ('A', 'B', 'C')

@@ -100,27 +100,35 @@
 </div>
 
 <!-- Classification detailed: AP & OB tách riêng -->
+<div class="mb-4 flex items-center flex-wrap gap-4 bg-white p-4 rounded-xl shadow">
+    <label class="text-sm font-bold text-gray-700">Lọc trạng thái (Phân loại):</label>
+    <div id="clsStagesFilter" class="flex flex-wrap items-center gap-4">
+        {% for st in ['Research', 'Plan B', 'Plan A', 'Deal', 'Done'] %}
+        <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" value="{{ st }}" checked onchange="reloadClassCharts()" class="form-checkbox h-4 w-4 text-blue-600 rounded cursor-pointer">
+            <span class="ml-2 text-sm font-medium text-gray-700">{{ st }}</span>
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại chi tiết — AP (Căn hộ)</h2>
-        <p class="text-xs text-gray-500 mb-4">Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại chi tiết — AP (Căn hộ)</h2>
         <canvas id="classChartAP" height="140"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-1">Phân loại chi tiết — OB (Văn phòng)</h2>
-        <p class="text-xs text-gray-500 mb-4">Research → Done · gồm cả 3 miền (Bắc + Trung + Nam)</p>
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại chi tiết — OB (Văn phòng)</h2>
         <canvas id="classChartOB" height="140"></canvas>
     </div>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-1">Gộp A / B / C — AP (Căn hộ)</h2>
-        <p class="text-xs text-gray-500 mb-2">A± → A · B± → B · C± → C · Research → Done · cả 3 miền</p>
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Gộp A / B / C — AP (Căn hộ)</h2>
         <canvas id="classGroupAP" height="120"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-1">Gộp A / B / C — OB (Văn phòng)</h2>
-        <p class="text-xs text-gray-500 mb-2">A± → A · B± → B · C± → C · Research → Done · cả 3 miền</p>
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Gộp A / B / C — OB (Văn phòng)</h2>
         <canvas id="classGroupOB" height="120"></canvas>
     </div>
 </div>
@@ -290,59 +298,80 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
         // ---- Classification detailed: AP & OB tách riêng (all-blue shades) ----
-        const cd = data.classification_detail || { labels: [], AP: [], OB: [] };
         const blueRamp = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
-        function classBar(canvasId, arr) {
-            new Chart(document.getElementById(canvasId), {
-                type: 'bar',
-                data: {
-                    labels: cd.labels,
-                    datasets: [{
-                        label: 'Số dự án',
-                        data: arr,
-                        backgroundColor: cd.labels.map((_, i) => blueRamp[i % blueRamp.length])
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
-                    }
-                }
-            });
-        }
-        classBar('classChartAP', cd.AP);
-        classBar('classChartOB', cd.OB);
+        let chartInsts = {};
 
-        // ---- Classification grouped A/B/C, one pie per category ----
-        const cg = data.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
-        function abcPie(canvasId, arr) {
-            new Chart(document.getElementById(canvasId), {
-                type: 'pie',
-                data: {
-                    labels: cg.labels,
-                    datasets: [{ data: arr, backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        datalabels: {
-                            color: '#fff', font: { weight: 'bold', size: 13 },
-                            formatter: (v, ctx) => {
-                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = total ? (v / total * 100).toFixed(1) : 0;
-                                return v ? `${ctx.chart.data.labels[ctx.dataIndex]}: ${v} (${pct}%)` : '';
+        window.renderClassification = function(clsData) {
+            const cd = clsData.classification_detail || { labels: [], AP: [], OB: [] };
+            
+            function classBar(canvasId, arr) {
+                if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
+                chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
+                    type: 'bar',
+                    data: {
+                        labels: cd.labels,
+                        datasets: [{
+                            label: 'Số dự án',
+                            data: arr,
+                            backgroundColor: cd.labels.map((_, i) => blueRamp[i % blueRamp.length])
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } },
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
+                        }
+                    }
+                });
+            }
+            classBar('classChartAP', cd.AP);
+            classBar('classChartOB', cd.OB);
+
+            // ---- Classification grouped A/B/C, one pie per category ----
+            const cg = clsData.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
+            function abcPie(canvasId, arr) {
+                if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
+                chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
+                    type: 'pie',
+                    data: {
+                        labels: cg.labels,
+                        datasets: [{ data: arr, backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            datalabels: {
+                                color: '#fff', font: { weight: 'bold', size: 13 },
+                                formatter: (v, ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total ? (v / total * 100).toFixed(1) : 0;
+                                    return v ? `${ctx.chart.data.labels[ctx.dataIndex]}: ${v} (${pct}%)` : '';
+                                }
                             }
                         }
                     }
-                }
-            });
-        }
-        abcPie('classGroupAP', cg.AP);
-        abcPie('classGroupOB', cg.OB);
+                });
+            }
+            abcPie('classGroupAP', cg.AP);
+            abcPie('classGroupOB', cg.OB);
+        };
+        
+        window.renderClassification(data);
     });
+
+function reloadClassCharts() {
+    const boxes = document.querySelectorAll('#clsStagesFilter input:checked');
+    const stages = Array.from(boxes).map(b => b.value).join(',');
+    fetch('/api/stats?category={{ category }}&cls_stages=' + encodeURIComponent(stages))
+        .then(response => response.json())
+        .then(data => {
+            if (window.renderClassification) {
+                window.renderClassification(data);
+            }
+        });
+}
 </script>
 {% endblock %}
