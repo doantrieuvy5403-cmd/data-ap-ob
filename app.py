@@ -154,10 +154,10 @@ FUNNEL_WEIGHT = {'Research': 0.2, 'Plan B': 0.4, 'Plan A': 0.6, 'Deal': 0.8, 'Do
 # "done" = sum of total_screens across these stages (Research EXCLUDED).
 # The "MN" bucket combines Miền Nam + Miền Trung into one figure/chart.
 SCREEN_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
-SCREEN_REGION_GROUPS = {'MB': ['MB'], 'MN': ['MN', 'MT']}
+SCREEN_REGION_GROUPS = {'MB_MT': ['MB', 'MT'], 'MN': ['MN']}
 SCREEN_TARGETS = {
-    'AP': {'name': 'P6000', 'MB': 2500, 'MN': 3500},
-    'OB': {'name': 'P1000', 'MB': 450, 'MN': 550},
+    'AP': {'name': 'P6000', 'MB_MT': 3000, 'MN': 3000},
+    'OB': {'name': 'P1000', 'MB_MT': 500, 'MN': 500},
 }
 
 
@@ -171,7 +171,7 @@ def _screen_progress():
         sum_done = 0
         sum_target = 0
         regions = {}
-        for reg in ('MB', 'MN'):
+        for reg in ('MB_MT', 'MN'):
             done = db.session.query(
                 db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
             ).filter(
@@ -186,7 +186,7 @@ def _screen_progress():
             sum_target += target
         result[cat] = {
             'name': cfg['name'],
-            'MB': regions['MB'],
+            'MB_MT': regions['MB_MT'],
             'MN': regions['MN'],
             'SUM': {'done': sum_done, 'target': sum_target},
         }

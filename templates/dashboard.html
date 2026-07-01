@@ -191,13 +191,13 @@ fetch('/api/stats?category={{ category }}')
         const sp = data.screen_progress;
         if (sp) {
             document.getElementById('p6000Title').textContent = sp.AP.name;
-            screenDonut('apMB', 'apMBcap', 'Miền Bắc', sp.AP.MB.done, sp.AP.MB.target);
-            screenDonut('apMN', 'apMNcap', 'Miền Nam + Miền Trung', sp.AP.MN.done, sp.AP.MN.target);
+            screenDonut('apMB', 'apMBcap', 'Miền Bắc + Miền Trung', sp.AP.MB_MT.done, sp.AP.MB_MT.target);
+            screenDonut('apMN', 'apMNcap', 'Miền Nam', sp.AP.MN.done, sp.AP.MN.target);
             screenDonut('apSUM', 'apSUMcap', 'Tổng (cả nước)', sp.AP.SUM.done, sp.AP.SUM.target);
 
             document.getElementById('p1000Title').textContent = sp.OB.name;
-            screenDonut('obMB', 'obMBcap', 'Miền Bắc', sp.OB.MB.done, sp.OB.MB.target);
-            screenDonut('obMN', 'obMNcap', 'Miền Nam + Miền Trung', sp.OB.MN.done, sp.OB.MN.target);
+            screenDonut('obMB', 'obMBcap', 'Miền Bắc + Miền Trung', sp.OB.MB_MT.done, sp.OB.MB_MT.target);
+            screenDonut('obMN', 'obMNcap', 'Miền Nam', sp.OB.MN.done, sp.OB.MN.target);
             screenDonut('obSUM', 'obSUMcap', 'Tổng (cả nước)', sp.OB.SUM.done, sp.OB.SUM.target);
         }
 
