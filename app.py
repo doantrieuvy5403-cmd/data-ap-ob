@@ -142,9 +142,21 @@ DASHBOARD_PERSONS = [
     ('Ngân An', 'AN', 'Team Thuỳ'),
     ('Thuỳ', 'THUỲ', 'Team Thuỳ'),
 ]
-# Per-person screen targets (Deal + Done), split equally among all members
-PERSON_TARGET_AP = 3000  # total AP screen target across the team
-PERSON_TARGET_OB = 500   # total OB screen target across the team
+# Per-person screen targets (Deal + Done) — individual AP/OB goals per member
+PERSON_TARGETS = {
+    'Nhiên':    {'ap': 350, 'ob': 60},
+    'Tân':      {'ap': 300, 'ob': 45},
+    'Quỳnh Hà': {'ap': 250, 'ob': 45},
+    'Phú':      {'ap': 250, 'ob': 45},
+    'Phương':   {'ap': 200, 'ob': 20},
+    'Dũng':     {'ap': 300, 'ob': 55},
+    'Mai':      {'ap': 300, 'ob': 50},
+    'Khánh':    {'ap': 250, 'ob': 45},
+    'Quyền':    {'ap': 250, 'ob': 45},
+    'Ngân An':  {'ap': 250, 'ob': 45},
+    'Thuỳ':     {'ap': 300, 'ob': 45},
+}
+DEFAULT_TARGET = {'ap': 250, 'ob': 45}  # fallback for any person not listed above
 DEAL_DONE_STAGES = ['Deal', 'Done']
 # Sales funnel stages in order + completion weight for progress %
 FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
@@ -202,9 +214,6 @@ def _compute_person_progress(category=None):
     AP/OB targets line up regardless of the dashboard category filter.
     """
     persons = DASHBOARD_PERSONS
-    n = len(persons) or 1
-    target_ap = PERSON_TARGET_AP / n   # per-person AP screen target
-    target_ob = PERSON_TARGET_OB / n   # per-person OB screen target
 
     counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _, _ in persons}
     ap_screens = {disp: 0 for disp, _, _ in persons}
@@ -249,6 +258,9 @@ def _compute_person_progress(category=None):
         progress_project = round(weighted / total * 100, 1) if total else 0.0
         ap = ap_screens[disp]
         ob = ob_screens[disp]
+        tgt = PERSON_TARGETS.get(disp, DEFAULT_TARGET)
+        target_ap = tgt['ap']
+        target_ob = tgt['ob']
         progress_ap = round(ap / target_ap * 100, 1) if target_ap else 0.0
         progress_ob = round(ob / target_ob * 100, 1) if target_ob else 0.0
         result.append({
