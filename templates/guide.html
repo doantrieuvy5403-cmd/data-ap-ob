@@ -3,20 +3,21 @@
 {% block title %}Hướng Dẫn Sử Dụng - DATA AP OB{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <div class="flex items-center gap-3">
-        <span class="text-3xl">📘</span>
+<!-- Page header -->
+<div class="mb-8 fade-in">
+    <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">📘</div>
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">Hướng Dẫn Sử Dụng Web Database AP – OB</h1>
-            <p class="text-gray-600 mt-1">Tài liệu nội bộ · Inspired Space</p>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Hướng Dẫn Sử Dụng Web Database AP – OB</h1>
+            <p class="text-sm text-slate-500 mt-1">Tài liệu nội bộ · Inspired Space</p>
         </div>
     </div>
 </div>
 
 <!-- Quy tắc cốt lõi -->
-<div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
-    <h2 class="text-lg font-bold text-amber-800 mb-3">⭐ Quy tắc cốt lõi</h2>
-    <ul class="space-y-2 text-sm text-amber-900 list-disc pl-5">
+<div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl px-4 py-4 text-sm shadow-sm mb-6 fade-in">
+    <h2 class="text-lg font-bold text-amber-800 mb-3 flex items-center gap-2"><span>⭐</span> Quy tắc cốt lõi</h2>
+    <ul class="space-y-2 text-amber-900 list-disc pl-5">
         <li><strong>BD</strong> cập nhật số lượng màn hình <strong>mục tiêu</strong> muốn lắp đặt, <strong>không</strong> nhập số lượng màn hình của CCL.</li>
         <li>Chỉ khi trạng thái dự án chuyển sang <strong>Done</strong> thì <strong>OPS</strong> mới có thể theo dõi và cập nhật số lượng thực tế triển khai.</li>
         <li>Mỗi cá nhân BD phải kiểm tra <strong>target</strong> và số liệu của mình <strong>định kỳ hằng tuần</strong>.</li>
@@ -26,31 +27,37 @@
 <div class="space-y-6">
 
     <!-- 01 -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4"><span class="text-blue-600">01</span> · Đăng nhập và chọn đúng khu vực dữ liệu</h2>
-        <ol class="space-y-3 text-sm text-gray-700 list-decimal pl-5">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-sm font-bold bg-indigo-50 text-indigo-600">01</span>
+            <h2 class="text-lg font-bold text-slate-800">Đăng nhập và chọn đúng khu vực dữ liệu</h2>
+        </div>
+        <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5 marker:text-slate-400 marker:font-semibold">
             <li><strong>Mở đường dẫn hệ thống:</strong> truy cập bằng trình duyệt và đăng nhập theo tài khoản được cấp —
-                <a href="https://data-ap-ob-1.onrender.com/dashboard" class="text-blue-600 hover:underline">https://data-ap-ob-1.onrender.com</a></li>
+                <a href="https://data-ap-ob-1.onrender.com/dashboard" class="text-indigo-600 hover:text-indigo-500 font-medium hover:underline">https://data-ap-ob-1.onrender.com</a></li>
             <li><strong>Chọn đúng nhóm dữ liệu:</strong> tại menu bên trái, chọn <strong>AP</strong> hoặc <strong>OB</strong>, sau đó chọn <strong>Miền Nam / Miền Trung / Miền Bắc</strong> phù hợp với dự án.</li>
             <li><strong>Kiểm tra tiêu đề trang:</strong> tên trang phải trùng với nhóm dữ liệu dự kiến nhập, ví dụ: <em>Database AP (Căn hộ) – Miền Nam</em>.</li>
         </ol>
-        <div class="mt-4 bg-rose-50 border-l-4 border-rose-400 p-3 text-sm text-rose-800">
+        <div class="mt-4 rounded-xl bg-rose-50 border-l-4 border-rose-500 px-4 py-3 text-sm text-rose-800">
             <strong>Lưu ý:</strong> Nhập sai miền hoặc sai loại hình sẽ ảnh hưởng báo cáo tổng hợp và target cá nhân.
             Không thao tác nhanh theo trang đang mở sẵn; luôn đọc lại tiêu đề trước khi thêm mới hoặc import.
         </div>
     </div>
 
-    <!-- 03 -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4"><span class="text-blue-600">02</span> · Thêm dữ liệu (record) mới</h2>
-        <ol class="space-y-3 text-sm text-gray-700 list-decimal pl-5">
+    <!-- 02 -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-sm font-bold bg-indigo-50 text-indigo-600">02</span>
+            <h2 class="text-lg font-bold text-slate-800">Thêm dữ liệu (record) mới</h2>
+        </div>
+        <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5 marker:text-slate-400 marker:font-semibold">
             <li><strong>Chọn đúng miền và loại hình:</strong> từ menu bên trái, chọn AP/OB và miền tương ứng.</li>
             <li><strong>Kiểm tra dự án đã tồn tại hay chưa:</strong> nhập tên dự án vào ô <strong>Tìm kiếm</strong> và bấm <strong>Lọc</strong>. Chỉ tạo mới khi không có bản ghi phù hợp.</li>
             <li><strong>Bấm “+ Thêm mới”:</strong> nút nằm ở góc trên bên phải của trang danh sách.</li>
             <li><strong>Nhập đầy đủ thông tin dự án:</strong> điền các trường theo dữ liệu đã xác minh. Không để trống các trường bắt buộc hoặc trường phục vụ báo cáo.</li>
             <li><strong>Bấm “Thêm mới” để lưu:</strong> sau khi lưu, quay lại danh sách, tìm lại dự án và kiểm tra toàn bộ dữ liệu vừa nhập.</li>
         </ol>
-        <div class="mt-4 bg-emerald-50 border-l-4 border-emerald-400 p-3 text-sm text-emerald-800">
+        <div class="mt-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500 px-4 py-3 text-sm text-emerald-800">
             <strong>Kiểm tra sau khi tạo mới:</strong>
             <ul class="list-disc pl-5 mt-1 space-y-1">
                 <li>Tên dự án xuất hiện đúng nhóm AP/OB và đúng miền.</li>
@@ -61,10 +68,13 @@
         </div>
     </div>
 
-    <!-- 05 -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4"><span class="text-blue-600">03</span> · Cập nhật thông tin dự án đã nhập</h2>
-        <ol class="space-y-3 text-sm text-gray-700 list-decimal pl-5">
+    <!-- 03 -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-sm font-bold bg-indigo-50 text-indigo-600">03</span>
+            <h2 class="text-lg font-bold text-slate-800">Cập nhật thông tin dự án đã nhập</h2>
+        </div>
+        <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5 marker:text-slate-400 marker:font-semibold">
             <li><strong>Mở đúng trang dữ liệu:</strong> chọn AP/OB và miền nơi dự án đã được tạo.</li>
             <li><strong>Tìm dự án:</strong> nhập tên chung cư/dự án tại ô <strong>Tìm kiếm</strong>. Có thể kết hợp bộ lọc Trạng thái, Người phụ trách, Thành phố, Phân loại, Quận/Khu vực và Must have.</li>
             <li><strong>Bấm “Lọc”:</strong> đối chiếu tên dự án và các thông tin nhận diện trước khi sửa.</li>
@@ -73,10 +83,13 @@
         </ol>
     </div>
 
-    <!-- 06 - OPS -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4"><span class="text-teal-600">04</span> · Dành cho OPS — Cập nhật số lượng thực tế triển khai</h2>
-        <div class="bg-slate-50 border-l-4 border-slate-400 p-3 text-sm text-slate-700 mb-4">
+    <!-- 04 - OPS -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-sm font-bold bg-emerald-50 text-emerald-600">04</span>
+            <h2 class="text-lg font-bold text-slate-800">Dành cho OPS — Cập nhật số lượng thực tế triển khai</h2>
+        </div>
+        <div class="rounded-xl bg-sky-50 border-l-4 border-sky-500 px-4 py-3 text-sm text-sky-800 mb-4">
             <strong>Điều kiện trước khi OPS cập nhật:</strong>
             <ul class="list-disc pl-5 mt-1 space-y-1">
                 <li>Dự án đã được BD chuyển sang trạng thái <strong>Done</strong>.</li>
@@ -84,7 +97,7 @@
                 <li>OPS đã có số liệu triển khai thực tế để đối chiếu.</li>
             </ul>
         </div>
-        <ol class="space-y-3 text-sm text-gray-700 list-decimal pl-5">
+        <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5 marker:text-slate-400 marker:font-semibold">
             <li><strong>Mở “Database Install”:</strong> chọn mục Database Install tại menu bên trái.</li>
             <li><strong>Tìm dự án:</strong> dùng ô tìm kiếm hoặc bộ lọc Thành phố, Loại hình và Trạng thái Deal/Done để xác định đúng dự án.</li>
             <li><strong>Chọn “Sửa thực tế”:</strong> tại cột Thao tác, mở chức năng chỉnh sửa số liệu triển khai.</li>
@@ -93,10 +106,13 @@
         </ol>
     </div>
 
-    <!-- 07 - Phân biệt & checklist -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4"><span class="text-purple-600">05</span> · Phân biệt hai loại số liệu &amp; Checklist</h2>
-        <div class="bg-purple-50 border-l-4 border-purple-400 p-3 text-sm text-purple-800 mb-5">
+    <!-- 05 - Phân biệt & checklist -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-sm font-bold bg-violet-50 text-violet-600">05</span>
+            <h2 class="text-lg font-bold text-slate-800">Phân biệt hai loại số liệu &amp; Checklist</h2>
+        </div>
+        <div class="rounded-xl bg-violet-50 border-l-4 border-violet-500 px-4 py-3 text-sm text-violet-800 mb-5">
             <ul class="list-disc pl-5 space-y-1">
                 <li><strong>Tổng mục tiêu:</strong> số lượng màn hình BD dự kiến/mong muốn lắp đặt.</li>
                 <li><strong>Tổng thực tế triển khai:</strong> số lượng màn hình OPS đã lắp đặt hoặc xác nhận thực tế.</li>
@@ -105,9 +121,9 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="border border-gray-200 rounded-lg p-4">
-                <h3 class="font-semibold text-gray-800 mb-2">✅ Checklist hằng tuần — BD</h3>
-                <ul class="text-sm text-gray-700 space-y-1.5">
+            <div class="rounded-2xl border border-slate-200/70 bg-slate-50/50 p-5">
+                <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><span>✅</span> Checklist hằng tuần — BD</h3>
+                <ul class="text-sm text-slate-700 space-y-1.5">
                     <li>☐ Tất cả dự án mới trong tuần đã nhập đúng AP/OB và đúng miền.</li>
                     <li>☐ Không có dự án trùng tên hoặc trùng bản ghi.</li>
                     <li>☐ Người phụ trách PT1/PT2/PT3 đã cập nhật đúng.</li>
@@ -117,9 +133,9 @@
                     <li>☐ Các dự án đủ điều kiện đã chuyển sang Done để OPS theo dõi.</li>
                 </ul>
             </div>
-            <div class="border border-gray-200 rounded-lg p-4">
-                <h3 class="font-semibold text-gray-800 mb-2">✅ Checklist — OPS</h3>
-                <ul class="text-sm text-gray-700 space-y-1.5">
+            <div class="rounded-2xl border border-slate-200/70 bg-slate-50/50 p-5">
+                <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><span>✅</span> Checklist — OPS</h3>
+                <ul class="text-sm text-slate-700 space-y-1.5">
                     <li>☐ Chỉ cập nhật dự án đã xuất hiện trong Database Install.</li>
                     <li>☐ Đã đối chiếu đúng tên dự án, thành phố, loại hình và số block.</li>
                     <li>☐ Số lượng thực tế triển khai được xác nhận từ dữ liệu hiện trường.</li>
@@ -133,5 +149,5 @@
 
 </div>
 
-<p class="text-xs text-gray-400 mt-6">Nguồn: Tài liệu “Hướng dẫn sử dụng Web Database AP – OB” · Inspired Space (tài liệu nội bộ).</p>
+<p class="text-xs text-slate-400 mt-6">Nguồn: Tài liệu “Hướng dẫn sử dụng Web Database AP – OB” · Inspired Space (tài liệu nội bộ).</p>
 {% endblock %}

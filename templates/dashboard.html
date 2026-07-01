@@ -3,15 +3,15 @@
 {% block title %}Dashboard - DATA AP OB{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex items-start justify-between flex-wrap gap-4">
+<div class="mb-8 flex items-start justify-between flex-wrap gap-4 fade-in">
     <div>
-        <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p class="text-gray-600 mt-2">Thống kê và phân tích dữ liệu</p>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-1">Thống kê và phân tích dữ liệu</p>
     </div>
-    <form method="GET" class="flex items-center gap-2">
-        <label class="text-sm font-medium text-gray-700">Loại:</label>
+    <form method="GET" class="flex items-center gap-3">
+        <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Loại:</label>
         <select name="category" onchange="this.form.submit()"
-                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
             <option value="" {% if not category %}selected{% endif %}>Tất cả (AP + OB)</option>
             <option value="AP" {% if category == 'AP' %}selected{% endif %}>AP — Căn hộ</option>
             <option value="OB" {% if category == 'OB' %}selected{% endif %}>OB — Văn phòng</option>
@@ -20,79 +20,94 @@
 </div>
 
 <!-- Screen targets: P6000 (AP) & P1000 (OB) -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800"><span id="p6000Title">P6000</span> — Tiến độ màn hình (AP)</h2>
-        <span class="text-xs text-gray-500">Đã thực hiện = tổng màn các giai đoạn Plan B → Done (không tính Research)</span>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">🖥️</div>
+            <h2 class="text-lg font-bold text-slate-800"><span id="p6000Title">P6000</span> — Tiến độ màn hình (AP)</h2>
+        </div>
+        <span class="text-xs text-slate-400">Đã thực hiện = tổng màn các giai đoạn Plan B → Done (không tính Research)</span>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center"><canvas id="apMB" height="180"></canvas><p id="apMBcap" class="text-xs mt-2"></p></div>
-        <div class="text-center"><canvas id="apMN" height="180"></canvas><p id="apMNcap" class="text-xs mt-2"></p></div>
-        <div class="text-center"><canvas id="apSUM" height="180"></canvas><p id="apSUMcap" class="text-xs mt-2"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="apMB" height="180"></canvas><p id="apMBcap" class="text-xs mt-2 text-slate-500"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="apMN" height="180"></canvas><p id="apMNcap" class="text-xs mt-2 text-slate-500"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="apSUM" height="180"></canvas><p id="apSUMcap" class="text-xs mt-2 text-slate-500"></p></div>
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800"><span id="p1000Title">P1000</span> — Tiến độ màn hình (OB)</h2>
-        <span class="text-xs text-gray-500">Đã thực hiện = tổng màn các giai đoạn Plan B → Done (không tính Research)</span>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-50 text-emerald-600">🏢</div>
+            <h2 class="text-lg font-bold text-slate-800"><span id="p1000Title">P1000</span> — Tiến độ màn hình (OB)</h2>
+        </div>
+        <span class="text-xs text-slate-400">Đã thực hiện = tổng màn các giai đoạn Plan B → Done (không tính Research)</span>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center"><canvas id="obMB" height="180"></canvas><p id="obMBcap" class="text-xs mt-2"></p></div>
-        <div class="text-center"><canvas id="obMN" height="180"></canvas><p id="obMNcap" class="text-xs mt-2"></p></div>
-        <div class="text-center"><canvas id="obSUM" height="180"></canvas><p id="obSUMcap" class="text-xs mt-2"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="obMB" height="180"></canvas><p id="obMBcap" class="text-xs mt-2 text-slate-500"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="obMN" height="180"></canvas><p id="obMNcap" class="text-xs mt-2 text-slate-500"></p></div>
+        <div class="text-center rounded-xl border border-slate-200/70 p-4"><canvas id="obSUM" height="180"></canvas><p id="obSUMcap" class="text-xs mt-2 text-slate-500"></p></div>
     </div>
 </div>
 
 <!-- Weekly Growth: screens -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần — Màn hình</h2>
-        <span class="text-xs text-gray-500">Trục tung: số lượng màn hình · gồm AP + OB</span>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-violet-50 text-violet-600">📈</div>
+            <h2 class="text-lg font-bold text-slate-800">Tỉ lệ tăng trưởng theo tuần — Màn hình</h2>
+        </div>
+        <span class="text-xs text-slate-400">Trục tung: số lượng màn hình · gồm AP + OB</span>
     </div>
     <canvas id="weeklyChart" height="90"></canvas>
-    <p id="weeklyHint" class="text-xs text-gray-400 mt-3 hidden">
+    <p id="weeklyHint" class="text-xs text-slate-400 mt-3 hidden">
         Hiện mới có dữ liệu của tuần này. Mỗi tuần hệ thống sẽ tự ghi nhận thêm 1 điểm để tạo đường tăng trưởng.
     </p>
 </div>
 
 <!-- Weekly Growth: blocks -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800">Tỉ lệ tăng trưởng theo tuần — Blocks</h2>
-        <span class="text-xs text-gray-500">Trục tung: số lượng block · gồm AP + OB</span>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-amber-50 text-amber-600">🧱</div>
+            <h2 class="text-lg font-bold text-slate-800">Tỉ lệ tăng trưởng theo tuần — Blocks</h2>
+        </div>
+        <span class="text-xs text-slate-400">Trục tung: số lượng block · gồm AP + OB</span>
     </div>
     <canvas id="weeklyBlockChart" height="90"></canvas>
 </div>
 
 <!-- Person Workload Table -->
-<div class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-800">Khối lượng công việc theo người</h2>
-        <span class="text-xs text-gray-500">Số lượng dự án theo từng giai đoạn</span>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-sky-50 text-sky-600">👥</div>
+            <h2 class="text-lg font-bold text-slate-800">Khối lượng công việc theo người</h2>
+        </div>
+        <span class="text-xs text-slate-400">Số lượng dự án theo từng giai đoạn</span>
     </div>
-    <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-            <thead class="bg-gray-50 text-gray-600">
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+            <thead class="bg-slate-50">
                 <tr>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider">Cá nhân phụ trách</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider">Team</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Research</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan B</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Plan A</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Deal</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Done</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider">Tổng</th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-blue-50">Target AP<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
-                    <th class="px-4 py-3 text-center font-semibold uppercase text-xs tracking-wider bg-teal-50">Target OB<br><span class="normal-case text-[10px] text-gray-400">đạt / mục tiêu (màn)</span></th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ màn hình AP</th>
-                    <th class="px-4 py-3 text-left font-semibold uppercase text-xs tracking-wider w-44">Tiến độ màn hình OB</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Cá nhân phụ trách</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Team</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Research</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Plan B</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Plan A</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Deal</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Done</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Tổng</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 bg-indigo-50">Target AP<br><span class="normal-case text-[10px] text-slate-400">đạt / mục tiêu (màn)</span></th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 bg-emerald-50">Target OB<br><span class="normal-case text-[10px] text-slate-400">đạt / mục tiêu (màn)</span></th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 w-44">Tiến độ màn hình AP</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 w-44">Tiến độ màn hình OB</th>
                 </tr>
             </thead>
-            <tbody id="personTableBody" class="divide-y divide-gray-100">
-                <tr><td colspan="12" class="px-4 py-8 text-center text-gray-400">Đang tải...</td></tr>
+            <tbody id="personTableBody" class="divide-y divide-slate-100">
+                <tr><td colspan="12" class="px-4 py-8 text-center text-slate-400">Đang tải...</td></tr>
             </tbody>
-            <tfoot class="bg-gray-50 font-semibold text-gray-800">
+            <tfoot class="bg-slate-50 font-semibold text-slate-800">
                 <tr id="personTableFoot"></tr>
             </tfoot>
         </table>
@@ -100,35 +115,35 @@
 </div>
 
 <!-- Classification detailed: AP & OB tách riêng -->
-<div class="mb-4 flex items-center flex-wrap gap-4 bg-white p-4 rounded-xl shadow">
-    <label class="text-sm font-bold text-gray-700">Lọc trạng thái (Phân loại):</label>
+<div class="mb-6 flex items-center flex-wrap gap-4 bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+    <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Lọc trạng thái (Phân loại):</label>
     <div id="clsStagesFilter" class="flex flex-wrap items-center gap-4">
         {% for st in ['Research', 'Plan B', 'Plan A', 'Deal', 'Done'] %}
         <label class="inline-flex items-center cursor-pointer">
-            <input type="checkbox" value="{{ st }}" checked onchange="reloadClassCharts()" class="form-checkbox h-4 w-4 text-blue-600 rounded cursor-pointer">
-            <span class="ml-2 text-sm font-medium text-gray-700">{{ st }}</span>
+            <input type="checkbox" value="{{ st }}" checked onchange="reloadClassCharts()" class="form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500/30 cursor-pointer">
+            <span class="ml-2 text-sm font-medium text-slate-700">{{ st }}</span>
         </label>
         {% endfor %}
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại chi tiết — AP (Căn hộ)</h2>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — AP (Căn hộ)</h2>
         <canvas id="classChartAP" height="140"></canvas>
     </div>
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Phân loại chi tiết — OB (Văn phòng)</h2>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — OB (Văn phòng)</h2>
         <canvas id="classChartOB" height="140"></canvas>
     </div>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Gộp A / B / C — AP (Căn hộ)</h2>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Gộp A / B / C — AP (Căn hộ)</h2>
         <canvas id="classGroupAP" height="120"></canvas>
     </div>
-    <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Gộp A / B / C — OB (Văn phòng)</h2>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Gộp A / B / C — OB (Văn phòng)</h2>
         <canvas id="classGroupOB" height="120"></canvas>
     </div>
 </div>

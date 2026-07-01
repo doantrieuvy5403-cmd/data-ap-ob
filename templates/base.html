@@ -6,90 +6,122 @@
     <title>{% block title %}DATA - AP - OB{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-50 text-slate-800 antialiased">
     <div class="flex h-screen">
         {% if logged_in %}
         <!-- Sidebar -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col">
-            <div class="p-6 border-b border-slate-700">
-                <h1 class="text-xl font-bold">DATA - AP - OB</h1>
-                <p class="text-sm text-slate-400 mt-1">Inspired Space</p>
+        <aside class="w-64 shrink-0 bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-white flex flex-col">
+            <!-- Brand block -->
+            <div class="px-6 py-6 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-900/40">
+                        IS
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold tracking-tight leading-tight">DATA - AP - OB</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Inspired Space</p>
+                    </div>
+                </div>
             </div>
-            <nav class="flex-1 p-4 space-y-2">
+
+            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
                 <a href="{{ url_for('index') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'index' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏠 Tổng quan</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'index' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏠</span>
+                    <span>Tổng quan</span>
                 </a>
                 <a href="{{ url_for('dashboard') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'dashboard' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">📊 Dashboard</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'dashboard' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">📊</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="{{ url_for('conversion') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'conversion' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🔄 Tỷ Lệ Chuyển Đổi</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'conversion' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🔄</span>
+                    <span>Tỷ Lệ Chuyển Đổi</span>
                 </a>
                 <a href="{{ url_for('install') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint in ['install', 'install_add', 'install_edit'] %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🛠️ DataBase Install</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint in ['install', 'install_add', 'install_edit'] %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🛠️</span>
+                    <span>DataBase Install</span>
                 </a>
                 <a href="{{ url_for('guide') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'guide' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">📘 Hướng Dẫn Sử Dụng</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'guide' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">📘</span>
+                    <span>Hướng Dẫn Sử Dụng</span>
                 </a>
 
                 {% set cur_cat = request.view_args.get('category') if request.endpoint == 'database' else None %}
                 {% set cur_reg = request.view_args.get('region') if request.endpoint == 'database' else None %}
-                <div class="pt-4 pb-2">
-                    <p class="text-xs text-slate-500 uppercase font-semibold">Database AP (Căn hộ)</p>
+                <div class="pt-5 pb-1.5 px-3.5">
+                    <p class="text-[0.65rem] tracking-wider text-slate-500 uppercase font-semibold">Database AP (Căn hộ)</p>
                 </div>
                 <a href="{{ url_for('database', category='ap', region='mn') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏢 AP Miền Nam</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ap' and cur_reg == 'mn' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏢</span>
+                    <span>AP Miền Nam</span>
                 </a>
                 <a href="{{ url_for('database', category='ap', region='mt') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mt' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏢 AP Miền Trung</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ap' and cur_reg == 'mt' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏢</span>
+                    <span>AP Miền Trung</span>
                 </a>
                 <a href="{{ url_for('database', category='ap', region='mb') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ap' and cur_reg == 'mb' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏢 AP Miền Bắc</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ap' and cur_reg == 'mb' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏢</span>
+                    <span>AP Miền Bắc</span>
                 </a>
 
-                <div class="pt-4 pb-2">
-                    <p class="text-xs text-slate-500 uppercase font-semibold">Database OB (Văn phòng)</p>
+                <div class="pt-5 pb-1.5 px-3.5">
+                    <p class="text-[0.65rem] tracking-wider text-slate-500 uppercase font-semibold">Database OB (Văn phòng)</p>
                 </div>
                 <a href="{{ url_for('database', category='ob', region='mn') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mn' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏬 OB Miền Nam</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ob' and cur_reg == 'mn' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏬</span>
+                    <span>OB Miền Nam</span>
                 </a>
                 <a href="{{ url_for('database', category='ob', region='mt') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mt' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏬 OB Miền Trung</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ob' and cur_reg == 'mt' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏬</span>
+                    <span>OB Miền Trung</span>
                 </a>
                 <a href="{{ url_for('database', category='ob', region='mb') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if cur_cat == 'ob' and cur_reg == 'mb' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">🏬 OB Miền Bắc</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if cur_cat == 'ob' and cur_reg == 'mb' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">🏬</span>
+                    <span>OB Miền Bắc</span>
                 </a>
 
-                <div class="pt-4 pb-2">
-                    <p class="text-xs text-slate-500 uppercase font-semibold">Data</p>
+                <div class="pt-5 pb-1.5 px-3.5">
+                    <p class="text-[0.65rem] tracking-wider text-slate-500 uppercase font-semibold">Data</p>
                 </div>
                 <a href="{{ url_for('import_export') }}"
-                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'import_export' %}bg-slate-800{% endif %}">
-                    <span class="font-medium">📥 Import / Export</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'import_export' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">📥</span>
+                    <span>Import / Export</span>
                 </a>
             </nav>
+
+            <div class="px-6 py-4 border-t border-white/10">
+                <p class="text-xs text-slate-500">© Inspired Space</p>
+            </div>
         </aside>
         {% endif %}
 
         <!-- Main content -->
-        <main class="flex-1 overflow-auto">
-            <header class="bg-white border-b border-slate-200 p-4 flex items-center justify-between">
-                <div>
+        <main class="flex-1 overflow-auto bg-slate-50">
+            <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200/70 px-6 md:px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
                     {% if logged_in %}
-                        <p class="text-sm text-slate-500">Xin chào, {{ current_user }}</p>
+                        <span class="h-9 w-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold ring-1 ring-indigo-100">👋</span>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">Xin chào, {{ current_user }}</p>
+                            <p class="text-xs text-slate-400">Chào mừng trở lại</p>
+                        </div>
                     {% else %}
                         <p class="text-sm text-slate-500">Vui lòng đăng nhập để tiếp tục</p>
                     {% endif %}
@@ -100,17 +132,18 @@
             <!-- Flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                    <div class="p-4 space-y-2">
+                    <div class="px-6 md:px-8 pt-6 space-y-3 max-w-7xl mx-auto">
                         {% for category, message in messages %}
-                            <div class="px-4 py-3 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                                {{ message }}
+                            <div class="flex items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-sm border-l-4 {% if category == 'success' %}bg-emerald-50 border-emerald-500 text-emerald-800{% elif category == 'error' %}bg-rose-50 border-rose-500 text-rose-800{% else %}bg-sky-50 border-sky-500 text-sky-800{% endif %}">
+                                <span class="text-base leading-5">{% if category == 'success' %}✅{% elif category == 'error' %}⛔{% else %}ℹ️{% endif %}</span>
+                                <span class="font-medium">{{ message }}</span>
                             </div>
                         {% endfor %}
                     </div>
                 {% endif %}
             {% endwith %}
 
-            <div class="p-8">
+            <div class="p-6 md:p-8 max-w-7xl mx-auto fade-in">
                 {% block content %}{% endblock %}
             </div>
         </main>

@@ -4,142 +4,146 @@
 
 {% block content %}
 <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-800">Tổng quan hệ thống</h1>
-    <p class="text-gray-600 mt-2">Quản lý dữ liệu căn hộ Inspired Space</p>
+    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Tổng quan hệ thống</h1>
+    <p class="text-sm text-slate-500 mt-1">Quản lý dữ liệu căn hộ Inspired Space</p>
 </div>
 
 <!-- Stats Cards: Apartment (AP) -->
-<h2 class="text-lg font-semibold text-gray-700 mb-3">Căn hộ (AP)</h2>
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">AP Miền Nam</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ap_mn }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+<div class="mb-8">
+    <h2 class="text-lg font-bold text-slate-800 mb-4">Căn hộ (AP)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">AP Miền Nam</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ap_mn }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">🏢</div>
             </div>
-            <div class="text-blue-500 text-4xl">🏢</div>
+            <a href="{{ url_for('database', category='ap', region='mn') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ap', region='mn') }}" class="text-blue-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
-    </div>
 
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">AP Miền Trung</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ap_mt }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">AP Miền Trung</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ap_mt }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-amber-50 text-amber-600">🏢</div>
             </div>
-            <div class="text-orange-500 text-4xl">🏢</div>
+            <a href="{{ url_for('database', category='ap', region='mt') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ap', region='mt') }}" class="text-orange-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
-    </div>
 
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">AP Miền Bắc</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ap_mb }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">AP Miền Bắc</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ap_mb }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-50 text-emerald-600">🏢</div>
             </div>
-            <div class="text-green-500 text-4xl">🏢</div>
+            <a href="{{ url_for('database', category='ap', region='mb') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ap', region='mb') }}" class="text-green-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
     </div>
 </div>
 
 <!-- Stats Cards: Office Building (OB) -->
-<h2 class="text-lg font-semibold text-gray-700 mb-3">Tòa nhà văn phòng (OB)</h2>
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-teal-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">OB Miền Nam</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ob_mn }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+<div class="mb-8">
+    <h2 class="text-lg font-bold text-slate-800 mb-4">Tòa nhà văn phòng (OB)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">OB Miền Nam</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ob_mn }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-sky-50 text-sky-600">🏬</div>
             </div>
-            <div class="text-teal-500 text-4xl">🏬</div>
+            <a href="{{ url_for('database', category='ob', region='mn') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ob', region='mn') }}" class="text-teal-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
-    </div>
 
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">OB Miền Trung</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ob_mt }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">OB Miền Trung</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ob_mt }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-orange-50 text-orange-600">🏬</div>
             </div>
-            <div class="text-orange-500 text-4xl">🏬</div>
+            <a href="{{ url_for('database', category='ob', region='mt') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ob', region='mt') }}" class="text-orange-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
-    </div>
 
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-gray-500 text-sm font-medium">OB Miền Bắc</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ob_mb }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+        <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">OB Miền Bắc</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-3">{{ ob_mb }}</p>
+                    <p class="text-xs text-slate-400 mt-1">records</p>
+                </div>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-violet-50 text-violet-600">🏬</div>
             </div>
-            <div class="text-amber-500 text-4xl">🏬</div>
+            <a href="{{ url_for('database', category='ob', region='mb') }}" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium mt-5">
+                Xem chi tiết →
+            </a>
         </div>
-        <a href="{{ url_for('database', category='ob', region='mb') }}" class="text-amber-600 text-sm hover:underline mt-4 block">
-            Xem chi tiết →
-        </a>
     </div>
 </div>
 
 <!-- Summary / Actions -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-        <div class="flex items-center justify-between">
+    <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+        <div class="flex items-start justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Tổng cộng (AP + OB)</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">{{ ap_mn + ap_mt + ap_mb + ob_mn + ob_mt + ob_mb }}</p>
-                <p class="text-xs text-gray-400 mt-1">records</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tổng cộng (AP + OB)</p>
+                <p class="text-3xl font-bold text-slate-900 mt-3">{{ ap_mn + ap_mt + ap_mb + ob_mn + ob_mt + ob_mb }}</p>
+                <p class="text-xs text-slate-400 mt-1">records</p>
             </div>
-            <div class="text-purple-500 text-4xl">📊</div>
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">📊</div>
         </div>
-        <a href="{{ url_for('dashboard') }}" class="text-purple-600 text-sm hover:underline mt-4 block">
+        <a href="{{ url_for('dashboard') }}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition mt-5">
             Xem Dashboard →
         </a>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-        <div class="flex items-center justify-between">
+    <div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 hover:shadow-md transition">
+        <div class="flex items-start justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Import/Export</p>
-                <p class="text-3xl font-bold text-gray-800 mt-2">Data</p>
-                <p class="text-xs text-gray-400 mt-1">quản lý file</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Import/Export</p>
+                <p class="text-3xl font-bold text-slate-900 mt-3">Data</p>
+                <p class="text-xs text-slate-400 mt-1">quản lý file</p>
             </div>
-            <div class="text-orange-500 text-4xl">📥</div>
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-amber-50 text-amber-600">📥</div>
         </div>
-        <a href="{{ url_for('import_export') }}" class="text-orange-600 text-sm hover:underline mt-4 block">
+        <a href="{{ url_for('import_export') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition mt-5">
             Import / Export →
         </a>
     </div>
 </div>
 
 <!-- Status Breakdown -->
-<div class="bg-white rounded-lg shadow p-6 mb-8">
-    <h2 class="text-xl font-bold text-gray-800 mb-4">Phân bố theo trạng thái</h2>
+<div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-8">
+    <h2 class="text-lg font-bold text-slate-800 mb-5">Phân bố theo trạng thái</h2>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {% for status, count in status_stats %}
             {% if status %}
-            <div class="bg-gray-50 rounded-lg p-4 text-center">
-                <p class="text-2xl font-bold text-gray-800">{{ count }}</p>
-                <p class="text-sm text-gray-600 mt-1">{{ status }}</p>
+            <div class="rounded-xl border border-slate-200/70 bg-slate-50 p-4 text-center hover:bg-slate-100 transition">
+                <p class="text-2xl font-bold text-slate-900">{{ count }}</p>
+                <p class="text-sm text-slate-600 mt-1">{{ status }}</p>
             </div>
             {% endif %}
         {% endfor %}
@@ -147,29 +151,36 @@
 </div>
 
 <!-- Quick Actions -->
-<div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-4">Thao tác nhanh</h2>
+<div class="fade-in bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6">
+    <h2 class="text-lg font-bold text-slate-800 mb-5">Thao tác nhanh</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{{ url_for('database', category='ap', region='mn') }}" class="block bg-blue-50 hover:bg-blue-100 rounded-lg p-4 text-center transition">
-            <span class="text-blue-700 font-medium">Xem AP Miền Nam</span>
+        <a href="{{ url_for('database', category='ap', region='mn') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-indigo-50 text-indigo-600">🏢</span>
+            <span class="text-sm font-semibold text-slate-700">Xem AP Miền Nam</span>
         </a>
-        <a href="{{ url_for('database', category='ap', region='mt') }}" class="block bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition">
-            <span class="text-orange-700 font-medium">Xem AP Miền Trung</span>
+        <a href="{{ url_for('database', category='ap', region='mt') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-amber-50 text-amber-600">🏢</span>
+            <span class="text-sm font-semibold text-slate-700">Xem AP Miền Trung</span>
         </a>
-        <a href="{{ url_for('database', category='ap', region='mb') }}" class="block bg-green-50 hover:bg-green-100 rounded-lg p-4 text-center transition">
-            <span class="text-green-700 font-medium">Xem AP Miền Bắc</span>
+        <a href="{{ url_for('database', category='ap', region='mb') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-emerald-50 text-emerald-600">🏢</span>
+            <span class="text-sm font-semibold text-slate-700">Xem AP Miền Bắc</span>
         </a>
-        <a href="{{ url_for('database', category='ob', region='mn') }}" class="block bg-teal-50 hover:bg-teal-100 rounded-lg p-4 text-center transition">
-            <span class="text-teal-700 font-medium">Xem OB Miền Nam</span>
+        <a href="{{ url_for('database', category='ob', region='mn') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-sky-50 text-sky-600">🏬</span>
+            <span class="text-sm font-semibold text-slate-700">Xem OB Miền Nam</span>
         </a>
-        <a href="{{ url_for('database', category='ob', region='mt') }}" class="block bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition">
-            <span class="text-orange-700 font-medium">Xem OB Miền Trung</span>
+        <a href="{{ url_for('database', category='ob', region='mt') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-orange-50 text-orange-600">🏬</span>
+            <span class="text-sm font-semibold text-slate-700">Xem OB Miền Trung</span>
         </a>
-        <a href="{{ url_for('database', category='ob', region='mb') }}" class="block bg-amber-50 hover:bg-amber-100 rounded-lg p-4 text-center transition">
-            <span class="text-amber-700 font-medium">Xem OB Miền Bắc</span>
+        <a href="{{ url_for('database', category='ob', region='mb') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-violet-50 text-violet-600">🏬</span>
+            <span class="text-sm font-semibold text-slate-700">Xem OB Miền Bắc</span>
         </a>
-        <a href="{{ url_for('dashboard') }}" class="block bg-purple-50 hover:bg-purple-100 rounded-lg p-4 text-center transition">
-            <span class="text-purple-700 font-medium">Xem Dashboard</span>
+        <a href="{{ url_for('dashboard') }}" class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:bg-slate-50 transition">
+            <span class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-indigo-50 text-indigo-600">📊</span>
+            <span class="text-sm font-semibold text-slate-700">Xem Dashboard</span>
         </a>
     </div>
 </div>

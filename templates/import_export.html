@@ -3,21 +3,26 @@
 {% block title %}Import / Export - DATA AP OB{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Import / Export dữ liệu</h1>
-    <p class="text-gray-600 mt-2">Tải lên file Excel/CSV hoặc xuất dữ liệu về máy</p>
+<div class="mb-8">
+    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Import / Export dữ liệu</h1>
+    <p class="text-sm text-slate-500 mt-1">Tải lên file Excel/CSV hoặc xuất dữ liệu về máy</p>
 </div>
 
 <!-- Import Section -->
-<div class="bg-white rounded-lg shadow p-6 mb-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-4">📥 Import dữ liệu</h2>
-    <p class="text-gray-600 mb-4">Chọn file Excel (.xlsx) hoặc CSV để import vào database</p>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
+    <div class="flex items-center gap-3 mb-1">
+        <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">📥</div>
+        <div>
+            <h2 class="text-lg font-bold text-slate-800">Import dữ liệu</h2>
+            <p class="text-sm text-slate-500">Chọn file Excel (.xlsx) hoặc CSV để import vào database</p>
+        </div>
+    </div>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <form method="POST" enctype="multipart/form-data" class="space-y-5 mt-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Loại dữ liệu</label>
-                <select name="target" id="importTarget" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Loại dữ liệu</label>
+                <select name="target" id="importTarget" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
                     <option value="ap/mn">AP Miền Nam</option>
                     <option value="ap/mb">AP Miền Bắc</option>
                     <option value="ob/mn">OB Miền Nam</option>
@@ -26,20 +31,21 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">File</label>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">File</label>
                 <input type="file" name="file" accept=".xlsx,.csv"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                       class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-indigo-600 hover:file:bg-indigo-100">
             </div>
         </div>
 
         <button type="submit" id="importBtn"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+            <span>📥</span>
             Import dữ liệu
         </button>
     </form>
 
-    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-        <p class="text-sm text-blue-800">
+    <div class="mt-6 rounded-xl bg-sky-50 border-l-4 border-sky-500 px-4 py-3">
+        <p class="text-sm text-sky-800">
             <strong>Lưu ý:</strong> File Excel/CSV phải có các cột tương ứng với cấu trúc dữ liệu.
             Các cột sẽ được tự động map từ tiếng Việt sang tiếng Anh.
         </p>
@@ -47,30 +53,35 @@
 </div>
 
 <!-- Export Section -->
-<div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-4">📤 Export dữ liệu</h2>
-    <p class="text-gray-600 mb-4">Xuất dữ liệu từ database về file Excel</p>
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+    <div class="flex items-center gap-3 mb-6">
+        <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-50 text-emerald-600">📤</div>
+        <div>
+            <h2 class="text-lg font-bold text-slate-800">Export dữ liệu</h2>
+            <p class="text-sm text-slate-500">Xuất dữ liệu từ database về file Excel</p>
+        </div>
+    </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <a href="{{ url_for('export_data', category='ap', region='mn') }}"
-           class="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-medium transition text-center block">
-            <span class="text-2xl block mb-2">🏢</span>
-            Export AP Miền Nam
+           class="group bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-5 text-center block">
+            <span class="mx-auto mb-3 h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">🏢</span>
+            <span class="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition">Export AP Miền Nam</span>
         </a>
         <a href="{{ url_for('export_data', category='ap', region='mb') }}"
-           class="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-medium transition text-center block">
-            <span class="text-2xl block mb-2">🏢</span>
-            Export AP Miền Bắc
+           class="group bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-5 text-center block">
+            <span class="mx-auto mb-3 h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-violet-50 text-violet-600">🏢</span>
+            <span class="text-sm font-semibold text-slate-700 group-hover:text-violet-600 transition">Export AP Miền Bắc</span>
         </a>
         <a href="{{ url_for('export_data', category='ob', region='mn') }}"
-           class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-4 rounded-lg font-medium transition text-center block">
-            <span class="text-2xl block mb-2">🏬</span>
-            Export OB Miền Nam
+           class="group bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-5 text-center block">
+            <span class="mx-auto mb-3 h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-50 text-emerald-600">🏬</span>
+            <span class="text-sm font-semibold text-slate-700 group-hover:text-emerald-600 transition">Export OB Miền Nam</span>
         </a>
         <a href="{{ url_for('export_data', category='ob', region='mb') }}"
-           class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-4 rounded-lg font-medium transition text-center block">
-            <span class="text-2xl block mb-2">🏬</span>
-            Export OB Miền Bắc
+           class="group bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-5 text-center block">
+            <span class="mx-auto mb-3 h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-sky-50 text-sky-600">🏬</span>
+            <span class="text-sm font-semibold text-slate-700 group-hover:text-sky-600 transition">Export OB Miền Bắc</span>
         </a>
     </div>
 </div>
