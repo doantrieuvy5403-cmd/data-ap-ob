@@ -34,6 +34,10 @@
                    class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint in ['install', 'install_add', 'install_edit'] %}bg-slate-800{% endif %}">
                     <span class="font-medium">🛠️ DataBase Install</span>
                 </a>
+                <a href="{{ url_for('guide') }}"
+                   class="block px-4 py-3 rounded-lg hover:bg-slate-800 transition {% if request.endpoint == 'guide' %}bg-slate-800{% endif %}">
+                    <span class="font-medium">📘 Hướng Dẫn Sử Dụng</span>
+                </a>
 
                 {% set cur_cat = request.view_args.get('category') if request.endpoint == 'database' else None %}
                 {% set cur_reg = request.view_args.get('region') if request.endpoint == 'database' else None %}

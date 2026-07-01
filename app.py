@@ -659,6 +659,13 @@ def dashboard():
     return render_template('dashboard.html', category=category)
 
 
+@app.route('/guide')
+@login_required
+def guide():
+    """Hướng dẫn sử dụng web (nội bộ) — dựa trên tài liệu Inspired Space."""
+    return render_template('guide.html')
+
+
 # Conversion-rate funnel stages (columns of the two tables)
 CONVERSION_STAGES = ['Plan B', 'Plan A', 'Deal', 'Done']
 
