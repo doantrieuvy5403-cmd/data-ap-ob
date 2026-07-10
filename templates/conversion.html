@@ -18,7 +18,8 @@
                     {% for s in stages %}
                     <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">{{ s }}</th>
                     {% endfor %}
-                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white bg-indigo-600">Install</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white bg-indigo-600">Install demand</th>
+                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white bg-teal-600">Install</th>
                     <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600 bg-slate-100">Tổng</th>
                 </tr>
             </thead>
@@ -37,13 +38,20 @@
                         <td class="px-4 py-3 text-sm text-center {{ 'text-slate-700' if table[s][key] else 'text-slate-300' }}">{{ table[s][key] }}</td>
                     {% endfor %}
                     <td class="px-4 py-3 text-sm text-center font-bold text-indigo-700 bg-indigo-50">{{ install[key] }}</td>
+                    <td class="px-4 py-3 text-sm text-center font-bold text-teal-700 bg-teal-50">
+                        {% if key == 'screens' %}
+                            {{ install['deployed'] }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td class="px-4 py-3 text-sm text-center font-bold text-slate-900 bg-slate-50">{{ ns.total }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <p class="text-xs text-slate-400 mt-3">* Cột <span class="font-semibold text-indigo-600">Install</span> = số liệu toà nhà đã lắp đặt (tham chiếu), <span class="font-semibold text-slate-500">không</span> cộng vào cột Tổng.</p>
+    <p class="text-xs text-slate-400 mt-3">* Cột <span class="font-semibold text-indigo-600">Install demand</span> = số liệu toà nhà đã lên Deal/Done, <span class="font-semibold text-teal-600">Install</span> = thực tế triển khai. Các cột này <span class="font-semibold text-slate-500">không</span> cộng vào cột Tổng.</p>
 </div>
 {% endmacro %}
 
@@ -84,7 +92,7 @@
 
     <div class="grid grid-cols-1 gap-6">
         {{ conv_table('Bảng 1 — Toàn bộ dự án (gồm Must have & không Must have)', table_all, stages, 'bg-indigo-500', install) }}
-        {{ conv_table('Bảng 2 — Chỉ loại Must have', table_mh, stages, 'bg-rose-500', install) }}
+        {{ conv_table('Bảng 2 — Chỉ loại Must have', table_mh, stages, 'bg-rose-500', install_mh) }}
     </div>
 
     <p class="text-xs text-slate-400 mt-6">

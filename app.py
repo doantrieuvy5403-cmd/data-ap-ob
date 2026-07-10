@@ -708,7 +708,7 @@ def _conversion_table(must_have_only=False, region=None, category=None):
     return table
 
 
-def _install_totals(region=None, category=None):
+def _install_totals(must_have_only=False, region=None, category=None):
     """Totals from AP/OB for sites in Deal or Done status."""
     q = db.session.query(
         db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
@@ -716,6 +716,8 @@ def _install_totals(region=None, category=None):
         db.func.count(ApartmentRecord.id),
         db.func.coalesce(db.func.sum(ApartmentRecord.total_deployed), 0),
     ).filter(ApartmentRecord.status.in_(['Deal', 'Done']))
+    if must_have_only:
+        q = q.filter(ApartmentRecord.must_have.isnot(None))
     if region:
         q = q.filter(ApartmentRecord.region == region)
     if category:
@@ -817,7 +819,8 @@ def conversion():
         stages=CONVERSION_STAGES,
         table_all=_conversion_table(must_have_only=False, region=region, category=category),
         table_mh=_conversion_table(must_have_only=True, region=region, category=category),
-        install=_install_totals(region=region, category=category),
+        install=_install_totals(must_have_only=False, region=region, category=category),
+        install_mh=_install_totals(must_have_only=True, region=region, category=category),
         region=region,
         category=category,
         week=now.isocalendar()[1],
