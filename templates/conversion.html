@@ -41,8 +41,10 @@
                     <td class="px-4 py-3 text-sm text-center font-bold text-teal-700 bg-teal-50">
                         {% if key == 'screens' %}
                             {{ install['deployed'] }}
+                        {% elif key == 'blocks' %}
+                            {{ install['deployed_blocks'] }}
                         {% else %}
-                            -
+                            {{ install['deployed_buildings'] }}
                         {% endif %}
                     </td>
                     <td class="px-4 py-3 text-sm text-center font-bold text-slate-900 bg-slate-50">{{ ns.total }}</td>

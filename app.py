@@ -711,10 +711,9 @@ def _conversion_table(must_have_only=False, region=None, category=None):
 def _install_totals(must_have_only=False, region=None, category=None):
     """Totals from AP/OB for sites in Deal or Done status."""
     q = db.session.query(
-        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0),
-        db.func.coalesce(db.func.sum(ApartmentRecord.num_blocks), 0),
-        db.func.count(ApartmentRecord.id),
-        db.func.coalesce(db.func.sum(ApartmentRecord.total_deployed), 0),
+        ApartmentRecord.total_screens,
+        ApartmentRecord.num_blocks,
+        ApartmentRecord.total_deployed
     ).filter(ApartmentRecord.status.in_(['Deal', 'Done']))
     if must_have_only:
         q = q.filter(ApartmentRecord.must_have.isnot(None))
@@ -722,14 +721,31 @@ def _install_totals(must_have_only=False, region=None, category=None):
         q = q.filter(ApartmentRecord.region == region)
     if category:
         q = q.filter(ApartmentRecord.category == category)
-    screens, blocks, buildings, deployed = q.one()
-    screens = int(screens or 0)
-    deployed = int(deployed or 0)
+
+    screens, blocks, buildings, deployed = 0, 0, 0, 0
+    deployed_blocks, deployed_buildings = 0, 0
+
+    for r in q.all():
+        s = int(r.total_screens or 0)
+        b = int(r.num_blocks or 0)
+        d = int(r.total_deployed or 0)
+
+        screens += s
+        blocks += b
+        buildings += 1
+        deployed += d
+
+        if d > 0:
+            deployed_blocks += b
+            deployed_buildings += 1
+
     return {
         'screens': screens,
-        'blocks': int(blocks or 0),
-        'buildings': int(buildings or 0),
+        'blocks': blocks,
+        'buildings': buildings,
         'deployed': deployed,
+        'deployed_blocks': deployed_blocks,
+        'deployed_buildings': deployed_buildings,
         'loading_pct': round(deployed / screens * 100, 1) if screens else 0.0,
     }
 
