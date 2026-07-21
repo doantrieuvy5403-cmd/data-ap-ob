@@ -601,13 +601,17 @@ def add_record(category, region):
         db.session.add(record)
         db.session.commit()
         flash('Record added successfully', 'success')
+        next_url = request.form.get('next')
+        if next_url:
+            return redirect(next_url)
         return redirect(url_for('database', category=category.lower(), region=region.lower()))
 
     # Suggest the next STT for this category + region (max existing + 1)
     max_stt = db.session.query(db.func.max(ApartmentRecord.stt)).filter_by(
         category=category, region=region).scalar()
     next_stt = (max_stt or 0) + 1
-    return render_template('add_edit.html', category=category, region=region, record=None, next_stt=next_stt)
+    next_url = request.args.get('next')
+    return render_template('add_edit.html', category=category, region=region, record=None, next_stt=next_stt, next_url=next_url)
 
 
 @app.route('/record/<int:id>/edit', methods=['GET', 'POST'])
@@ -645,9 +649,13 @@ def edit_record(id):
 
         db.session.commit()
         flash('Record updated successfully', 'success')
+        next_url = request.form.get('next')
+        if next_url:
+            return redirect(next_url)
         return redirect(url_for('database', category=record.category.lower(), region=record.region.lower()))
 
-    return render_template('add_edit.html', category=record.category, region=record.region, record=record)
+    next_url = request.args.get('next')
+    return render_template('add_edit.html', category=record.category, region=record.region, record=record, next_url=next_url)
 
 
 @app.route('/record/<int:id>/delete', methods=['POST'])
@@ -658,8 +666,25 @@ def delete_record(id):
     category, region = record.category, record.region
     db.session.delete(record)
     db.session.commit()
+    
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+        return jsonify({'success': True})
+        
     flash('Record deleted successfully', 'success')
     return redirect(url_for('database', category=category.lower(), region=region.lower()))
+
+@app.route('/api/records/delete_batch', methods=['POST'])
+@login_required
+def delete_batch():
+    """Delete multiple records via AJAX"""
+    data = request.get_json()
+    ids = data.get('ids', [])
+    if not ids:
+        return jsonify({'success': False, 'message': 'No IDs provided'}), 400
+    
+    ApartmentRecord.query.filter(ApartmentRecord.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return jsonify({'success': True})
 
 
 @app.route('/dashboard')
@@ -891,6 +916,8 @@ def api_stats():
         ApartmentRecord.category,
         ApartmentRecord.classification,
         db.func.count(ApartmentRecord.id),
+        db.func.coalesce(db.func.sum(ApartmentRecord.num_blocks), 0),
+        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
     ).filter(
         ApartmentRecord.classification.isnot(None),
         ApartmentRecord.status.in_(cls_stages),
@@ -899,7 +926,8 @@ def api_stats():
     ABC = ('A', 'B', 'C')
     cls_detail = {'AP': {}, 'OB': {}}
     cls_grouped = {'AP': {k: 0 for k in ABC}, 'OB': {k: 0 for k in ABC}}
-    for cat, label, cnt in class_rows:
+    cls_screens = {'AP': {k: 0 for k in ABC}, 'OB': {k: 0 for k in ABC}}
+    for cat, label, cnt, blks, scrns in class_rows:
         if cat not in ('AP', 'OB'):
             continue
         name = str(label).strip()
@@ -908,8 +936,9 @@ def api_stats():
         first = name[0].upper()
         if first not in ABC:
             continue
-        cls_detail[cat][name] = cls_detail[cat].get(name, 0) + cnt
-        cls_grouped[cat][first] += cnt
+        cls_detail[cat][name] = cls_detail[cat].get(name, 0) + int(cnt)
+        cls_grouped[cat][first] += int(blks)
+        cls_screens[cat][first] += int(scrns)
     detail_labels = sorted(set(cls_detail['AP']) | set(cls_detail['OB']))
 
     # MN vs MB by status
@@ -958,6 +987,11 @@ def api_stats():
             'labels': list(ABC),
             'AP': [cls_grouped['AP'][k] for k in ABC],
             'OB': [cls_grouped['OB'][k] for k in ABC],
+        },
+        'classification_screens': {
+            'labels': list(ABC),
+            'AP': [cls_screens['AP'][k] for k in ABC],
+            'OB': [cls_screens['OB'][k] for k in ABC],
         },
         'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]]
     })
@@ -1030,6 +1064,61 @@ def export_data(category, region):
     output.seek(0)
 
     filename = f'Database_{category}_{region}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    return send_file(output,
+                    as_attachment=True,
+                    download_name=filename,
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@app.route('/export_all')
+@login_required
+def export_all():
+    """Export ALL databases into a single Excel file with multiple sheets."""
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        for cat in ('AP', 'OB'):
+            for reg in ('MN', 'MT', 'MB'):
+                records = ApartmentRecord.query.filter_by(category=cat, region=reg).order_by(
+                    ApartmentRecord.stt.is_(None), ApartmentRecord.stt.asc(), ApartmentRecord.id.asc()).all()
+                rows = []
+                for r in records:
+                    pts = [p.strip() for p in str(r.person_in_charge or '').split(',') if p.strip()]
+                    pts += ['', '', '']
+                    row = {}
+                    for label, field in APOB_COLUMNS:
+                        if field == 'pt1': row[label] = pts[0]
+                        elif field == 'pt2': row[label] = pts[1]
+                        elif field == 'pt3': row[label] = pts[2]
+                        else: row[label] = getattr(r, field)
+                    rows.append(row)
+                df = pd.DataFrame(rows, columns=[label for label, _ in APOB_COLUMNS])
+                df.to_excel(writer, index=False, sheet_name=f'{cat}_{reg}')
+        
+        # Add Install sheet
+        install_records = ApartmentRecord.query.filter(
+            ApartmentRecord.status.in_(['Deal', 'Done'])
+        ).order_by(ApartmentRecord.category, ApartmentRecord.region, ApartmentRecord.id).all()
+        install_rows = []
+        for i, r in enumerate(install_records, 1):
+            install_rows.append({
+                'STT': i,
+                'Dự án (toà nhà)': r.building_name,
+                'Khu vực': r.region,
+                'Loại Hình': r.category,
+                'Quận': r.district,
+                'City': r.city,
+                'Số Block': r.num_blocks,
+                'Trạng thái': r.status,
+                'Total (Thiết kế)': r.total_screens,
+                'Total thực tế triển khai': r.total_deployed,
+                'Loading %': round(r.total_deployed / r.total_screens * 100, 1) if (r.total_deployed and r.total_screens) else 0,
+                'Tình trạng': r.electricity_status,
+                'Ghi chú': r.install_note,
+            })
+        install_df = pd.DataFrame(install_rows)
+        install_df.to_excel(writer, index=False, sheet_name='Install')
+
+    output.seek(0)
+    filename = f'Database_All_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     return send_file(output,
                     as_attachment=True,
                     download_name=filename,

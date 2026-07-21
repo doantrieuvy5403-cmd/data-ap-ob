@@ -13,10 +13,15 @@
             </h1>
             <p class="text-sm text-slate-500 mt-1">Tổng số: {{ records.total }} records</p>
         </div>
-        <a href="{{ url_for('add_record', category=category.lower(), region=region.lower()) }}"
-           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
-            <span>➕</span> Thêm mới
-        </a>
+        <div class="flex items-center gap-2">
+            <button id="btnBulkDelete" onclick="bulkDelete()" class="hidden inline-flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-500 transition">
+                <span>🗑️</span> Xóa đã chọn (<span id="bulkDeleteCount">0</span>)
+            </button>
+            <a href="{{ url_for('add_record', category=category.lower(), region=region.lower(), next=request.url) }}"
+               class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
+                <span>➕</span> Thêm mới
+            </a>
+        </div>
     </div>
 </div>
 
@@ -151,6 +156,9 @@
     <table class="min-w-full divide-y divide-slate-100">
         <thead class="bg-slate-50">
             <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">
+                    <input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600">
+                </th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">STT</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">{% if category == 'OB' %}Tên OB{% else %}Tên chung cư{% endif %}</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Số Block</th>
@@ -174,7 +182,10 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             {% for record in records.items %}
-            <tr class="hover:bg-slate-50/70 transition">
+            <tr id="row-{{ record.id }}" class="hover:bg-slate-50/70 transition">
+                <td class="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
+                    <input type="checkbox" value="{{ record.id }}" class="row-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" onchange="updateBulkDeleteBtn()">
+                </td>
                 <td class="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">{{ record.stt or '' }}</td>
                 <td class="px-4 py-3 text-sm font-medium text-slate-800">{{ record.building_name or '' }}</td>
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.num_blocks if record.num_blocks is not none else '' }}</td>
@@ -214,12 +225,9 @@
                 <td class="px-4 py-3 text-sm font-semibold text-slate-800 text-center">{{ record.total_screens or 0 }}</td>
                 <td class="px-4 py-3 text-sm whitespace-nowrap">
                     <div class="flex items-center gap-3">
-                        <a href="{{ url_for('edit_record', id=record.id) }}"
+                        <a href="{{ url_for('edit_record', id=record.id, next=request.url) }}"
                            class="text-indigo-600 hover:text-indigo-700 font-medium">Sửa</a>
-                        <form method="POST" action="{{ url_for('delete_record', id=record.id) }}"
-                              onsubmit="return confirm('Bạn có chắc muốn xóa record này?')">
-                            <button type="submit" class="text-rose-600 hover:text-rose-700 font-medium">Xóa</button>
-                        </form>
+                        <button type="button" onclick="deleteSingle({{ record.id }})" class="text-rose-600 hover:text-rose-700 font-medium">Xóa</button>
                     </div>
                 </td>
             </tr>
@@ -261,7 +269,83 @@
                 {% endif %}
             </div>
         </div>
-    </div>
+        </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = source.checked;
+        }
+        updateBulkDeleteBtn();
+    }
+
+    function updateBulkDeleteBtn() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        const btn = document.getElementById('btnBulkDelete');
+        const countSpan = document.getElementById('bulkDeleteCount');
+        
+        if (checkedCount > 0) {
+            btn.classList.remove('hidden');
+            countSpan.textContent = checkedCount;
+        } else {
+            btn.classList.add('hidden');
+        }
+    }
+
+    function deleteSingle(id) {
+        if (!confirm('Bạn có chắc muốn xóa record này?')) return;
+        
+        fetch(`/record/${id}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.getElementById(`row-${id}`);
+                if (row) row.remove();
+            } else {
+                alert('Có lỗi xảy ra khi xóa');
+            }
+        });
+    }
+
+    function bulkDelete() {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        if (checkboxes.length === 0) return;
+        if (!confirm(`Bạn có chắc muốn xóa ${checkboxes.length} records đã chọn?`)) return;
+
+        const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        
+        fetch('/api/records/delete_batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ ids: ids })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                ids.forEach(id => {
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) row.remove();
+                });
+                document.getElementById('selectAll').checked = false;
+                updateBulkDeleteBtn();
+            } else {
+                alert('Có lỗi xảy ra khi xóa nhiều');
+            }
+        });
+    }
+</script>
 {% endblock %}

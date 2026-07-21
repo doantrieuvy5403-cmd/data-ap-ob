@@ -139,12 +139,27 @@
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">Gộp A / B / C — AP (Căn hộ)</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Gộp A / B / C — AP (Căn hộ)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
         <canvas id="classGroupAP" height="120"></canvas>
     </div>
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">Gộp A / B / C — OB (Văn phòng)</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Gộp A / B / C — OB (Văn phòng)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
         <canvas id="classGroupOB" height="120"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Màn hình A / B / C — AP (Căn hộ)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Màn hình</p>
+        <canvas id="classScreensAP" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Màn hình A / B / C — OB (Văn phòng)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Màn hình</p>
+        <canvas id="classScreensOB" height="120"></canvas>
     </div>
 </div>
 
@@ -346,6 +361,8 @@ fetch('/api/stats?category={{ category }}')
 
             // ---- Classification grouped A/B/C, one pie per category ----
             const cg = clsData.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
+            const cs = clsData.classification_screens || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
+            
             function abcPie(canvasId, arr) {
                 if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
                 chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {

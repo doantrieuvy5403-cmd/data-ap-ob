@@ -198,11 +198,14 @@
 
     <!-- Actions -->
     <div class="flex flex-wrap items-center gap-3 pt-2">
+        {% if next_url %}
+        <input type="hidden" name="next" value="{{ next_url }}">
+        {% endif %}
         <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">
             <span>{% if record %}💾{% else %}➕{% endif %}</span>
             {% if record %}Cập nhật{% else %}Thêm mới{% endif %}
         </button>
-        <a href="{{ url_for('database', category=category.lower(), region=region.lower()) }}"
+        <a href="{{ next_url if next_url else url_for('database', category=category.lower(), region=region.lower()) }}"
            class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">
             Hủy
         </a>
