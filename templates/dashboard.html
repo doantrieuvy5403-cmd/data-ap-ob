@@ -129,6 +129,16 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — AP (Căn hộ) (Biểu đồ cột)</h2>
+        <canvas id="classChartAP" height="140"></canvas>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — OB (Văn phòng) (Biểu đồ cột)</h2>
+        <canvas id="classChartOB" height="140"></canvas>
+    </div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
         <h2 class="text-lg font-bold text-slate-800 mb-2">Phân loại chi tiết — AP (Căn hộ)</h2>
         <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
         <canvas id="classGroupAP" height="120"></canvas>
@@ -317,9 +327,37 @@ fetch('/api/stats?category={{ category }}')
             <td class="px-4 py-3 text-xs text-blue-700">Toàn đội: ${apPctTotal}%</td>
             <td class="px-4 py-3 text-xs text-teal-700">Toàn đội: ${obPctTotal}%</td>`;
 
+        // ---- Classification detailed: AP & OB tách riêng (all-blue shades) ----
+        const blueRamp = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a'];
         let chartInsts = {};
 
         window.renderClassification = function(clsData) {
+            const cd = clsData.classification_detail || { labels: [], AP: [], OB: [] };
+            
+            function classBar(canvasId, arr) {
+                if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
+                chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
+                    type: 'bar',
+                    data: {
+                        labels: cd.labels,
+                        datasets: [{
+                            label: 'Số dự án',
+                            data: arr,
+                            backgroundColor: cd.labels.map((_, i) => blueRamp[i % blueRamp.length])
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } },
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { anchor: 'end', align: 'top', display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 }
+                        }
+                    }
+                });
+            }
+            classBar('classChartAP', cd.AP);
+            classBar('classChartOB', cd.OB);
 
             // ---- Classification grouped A/B/C, one pie per category ----
             const cg = clsData.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
@@ -351,8 +389,6 @@ fetch('/api/stats?category={{ category }}')
             }
             abcPie('classGroupAP', cg.AP);
             abcPie('classGroupOB', cg.OB);
-            abcPie('classScreensAP', cs.AP);
-            abcPie('classScreensOB', cs.OB);
         };
         
         window.renderClassification(data);
