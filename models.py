@@ -40,6 +40,7 @@ class ApartmentRecord(db.Model):
     install_note = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    install_date = db.Column(db.DateTime)
 
     def to_dict(self):
         return {
@@ -74,6 +75,7 @@ class ApartmentRecord(db.Model):
             "total_deployed": self.total_deployed,
             "electricity_status": self.electricity_status,
             "install_note": self.install_note,
+            "install_date": self.install_date.isoformat() if self.install_date else None,
         }
 
 

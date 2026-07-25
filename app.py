@@ -336,6 +336,9 @@ def _auto_seed():
                     else:
                         val = str(val)
                     setattr(record, field, val)
+                if record.status in ('Deal', 'Done'):
+                    if not record.install_date:
+                        record.install_date = datetime.utcnow()
                 if record.status == 'Deal':
                     record.total_deployed = 0
                 # OB: total_screens = sum of LED + DP/LCD totals
@@ -387,6 +390,8 @@ def _ensure_schema():
     add_col('apartment_record', 'digital_standee', "digital_standee INTEGER DEFAULT 0")
     add_col('apartment_record', 'electricity_status', "electricity_status VARCHAR(50)")
     add_col('apartment_record', 'install_note', "install_note TEXT")
+    add_col('apartment_record', 'install_date', "install_date TIMESTAMP",
+            "UPDATE apartment_record SET install_date = updated_at WHERE status IN ('Deal', 'Done') AND install_date IS NULL")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
     for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
@@ -434,6 +439,21 @@ def new_records():
         .order_by(ApartmentRecord.created_at.desc()).all()
         
     return render_template('new_records.html', records=records, start_of_week=start_of_week)
+
+@app.route('/new_install')
+@login_required
+def new_install():
+    """Hiển thị các dự án Install mới (chuyển sang Deal/Done) từ Thứ 2 tuần này."""
+    now = datetime.now()
+    days_since_monday = now.weekday()
+    start_of_week = (now - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    records = ApartmentRecord.query.filter(
+        ApartmentRecord.status.in_(['Deal', 'Done']),
+        ApartmentRecord.install_date >= start_of_week
+    ).order_by(ApartmentRecord.install_date.desc()).all()
+        
+    return render_template('new_install.html', records=records, start_of_week=start_of_week)
 
 @app.route('/')
 @login_required
@@ -613,6 +633,10 @@ def add_record(category, region):
             prospect=get_upper('prospect'),
             must_have=request.form.get('must_have') or None
         )
+        if record.status in ('Deal', 'Done'):
+            record.install_date = datetime.utcnow()
+        if record.status == 'Deal':
+            record.total_deployed = 0
         db.session.add(record)
         db.session.commit()
         flash('Record added successfully', 'success')
@@ -645,7 +669,14 @@ def edit_record(id):
         # address) are left untouched so they aren't wiped on edit.
         record.stt = request.form.get('stt', type=int)
         record.person_in_charge = _join_persons(request.form).upper() if _join_persons(request.form) else None
-        record.status = request.form.get('status')
+        
+        new_status = request.form.get('status')
+        if new_status in ('Deal', 'Done') and record.status not in ('Deal', 'Done'):
+            record.install_date = datetime.utcnow()
+        elif new_status not in ('Deal', 'Done'):
+            record.install_date = None
+        record.status = new_status
+        
         if record.status == 'Deal':
             record.total_deployed = 0
         record.city = get_upper('city')
@@ -1211,6 +1242,9 @@ def import_data(category, region):
             elif 'NS. Phụ trách' in df.columns and pd.notna(row.get('NS. Phụ trách')):
                 record.person_in_charge = str(row['NS. Phụ trách']).strip()
                 
+            if record.status in ('Deal', 'Done'):
+                if not record.install_date:
+                    record.install_date = datetime.utcnow()
             if record.status == 'Deal':
                 record.total_deployed = 0
 
