@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
 from models import db, ApartmentRecord, WeeklyGrowth, AppMeta
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import io
 import os
@@ -421,6 +421,19 @@ with app.app_context():
         print(f"auto_seed error: {e}")
 
 
+
+@app.route('/new_records')
+@login_required
+def new_records():
+    """Hiển thị các dữ liệu mới được nhập từ Thứ 2 tuần này."""
+    now = datetime.now()
+    days_since_monday = now.weekday()
+    start_of_week = (now - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    records = ApartmentRecord.query.filter(ApartmentRecord.created_at >= start_of_week)\
+        .order_by(ApartmentRecord.created_at.desc()).all()
+        
+    return render_template('new_records.html', records=records, start_of_week=start_of_week)
 
 @app.route('/')
 @login_required
