@@ -26,7 +26,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'data-ap-ob-secret-key-2026'
 app.config['ADMIN_USERNAME'] = os.environ.get('ADMIN_USERNAME', 'admin')
-app.config['ADMIN_PASSWORD_HASH'] = generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'password'))
+app.config['ADMIN_PASSWORD_HASH'] = generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'password'), method='pbkdf2:sha256')
 
 # Ensure instance directory exists
 os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
@@ -384,6 +384,7 @@ def _ensure_schema():
             "UPDATE apartment_record SET category='AP' WHERE category IS NULL")
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('apartment_record', 'total_deployed', "total_deployed INTEGER DEFAULT 0")
+    add_col('apartment_record', 'digital_standee', "digital_standee INTEGER DEFAULT 0")
     add_col('apartment_record', 'electricity_status', "electricity_status VARCHAR(50)")
     add_col('apartment_record', 'install_note', "install_note TEXT")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
@@ -591,6 +592,7 @@ def add_record(category, region):
             classification=get_upper('classification'),
             previous_operator=get_upper('previous_operator'),
             total_screens=request.form.get('total_screens', type=int),
+            digital_standee=request.form.get('digital_standee', type=int),
             screens_in_elevator=request.form.get('screens_in_elevator', type=int),
             screens_outside_elevator=request.form.get('screens_outside_elevator', type=int),
             p9000=request.form.get('p9000', type=int),
@@ -643,6 +645,7 @@ def edit_record(id):
         record.classification = get_upper('classification')
         record.previous_operator = get_upper('previous_operator')
         record.total_screens = request.form.get('total_screens', type=int)
+        record.digital_standee = request.form.get('digital_standee', type=int)
         record.screens_in_elevator = request.form.get('screens_in_elevator', type=int)
         record.screens_outside_elevator = request.form.get('screens_outside_elevator', type=int)
         record.must_have = request.form.get('must_have') or None
@@ -1018,8 +1021,9 @@ APOB_COLUMNS = [
     ('Màn trong thang', 'screens_in_elevator'),
     ('Màn ngoài thang', 'screens_outside_elevator'),
     ('Tổng SL màn', 'total_screens'),
+    ('Digital Standee', 'digital_standee'),
 ]
-APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens'}
+APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens', 'digital_standee'}
 # Accept a few legacy/alias header names on import (old exports / variants)
 APOB_IMPORT_ALIASES = {
     'Quận/Khu vực': 'district', 'TP/Tỉnh': 'city', 'Tiến độ': 'status',

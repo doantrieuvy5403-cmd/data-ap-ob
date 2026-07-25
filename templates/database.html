@@ -177,6 +177,7 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Màn trong thang</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Màn ngoài thang</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Tổng SL màn</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-blue-600">Digital Standee</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Thao tác</th>
             </tr>
         </thead>
@@ -223,7 +224,8 @@
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.screens_in_elevator if record.screens_in_elevator is not none else '' }}</td>
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.screens_outside_elevator if record.screens_outside_elevator is not none else '' }}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-slate-800 text-center">{{ record.total_screens or 0 }}</td>
-                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">{{ record.digital_standee or 0 }}</td>
+                <td class="px-4 py-3 text-sm font-medium whitespace-nowrap flex gap-2 justify-end">
                     <div class="flex items-center gap-3">
                         <a href="{{ url_for('edit_record', id=record.id, next=request.url) }}"
                            class="text-indigo-600 hover:text-indigo-700 font-medium">Sửa</a>
