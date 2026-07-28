@@ -127,7 +127,25 @@
     </div>
 </div>
 
+<!-- Regional Deal/Done Pie charts -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in flex flex-col items-center">
+        <h2 class="text-lg font-bold text-slate-800 w-full mb-2">Tỉ trọng Deal & Done theo Miền — AP</h2>
+        <p class="text-sm text-slate-500 w-full mb-4 font-medium italic">Đơn vị: Số lượng màn hình</p>
+        <div class="relative w-64 h-64">
+            <canvas id="regionPieAP"></canvas>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in flex flex-col items-center">
+        <h2 class="text-lg font-bold text-slate-800 w-full mb-2">Tỉ trọng Deal & Done theo Miền — OB</h2>
+        <p class="text-sm text-slate-500 w-full mb-4 font-medium italic">Đơn vị: Số lượng màn hình</p>
+        <div class="relative w-64 h-64">
+            <canvas id="regionPieOB"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
         <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — AP (Căn hộ) (Biểu đồ cột)</h2>
         <canvas id="classChartAP" height="140"></canvas>
@@ -229,6 +247,46 @@ fetch('/api/stats?category={{ category }}')
             screenDonut('obMB', 'obMBcap', 'Miền Bắc + Miền Trung', sp.OB.MB_MT.done, sp.OB.MB_MT.target);
             screenDonut('obMN', 'obMNcap', 'Miền Nam', sp.OB.MN.done, sp.OB.MN.target);
             screenDonut('obSUM', 'obSUMcap', 'Tổng (cả nước)', sp.OB.SUM.done, sp.OB.SUM.target);
+        }
+
+        // ---- Regional Deal/Done Pie charts ----
+        if (data.region_screens) {
+            const renderPie = (canvasId, regionData) => {
+                const labels = Object.keys(regionData || {});
+                const values = Object.values(regionData || {});
+                if (values.length === 0 || values.reduce((a,b)=>a+b,0) === 0) return;
+                
+                new Chart(document.getElementById(canvasId), {
+                    type: 'pie',
+                    data: {
+                        labels: labels.map(l => l === 'MB' ? 'Miền Bắc' : l === 'MT' ? 'Miền Trung' : l === 'MN' ? 'Miền Nam' : l),
+                        datasets: [{
+                            data: values,
+                            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'],
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                            tooltip: { callbacks: { label: c => `${c.label}: ${c.raw} màn` } },
+                            datalabels: {
+                                color: '#fff',
+                                font: { weight: 'bold', size: 12 },
+                                formatter: (value, ctx) => {
+                                    let sum = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+                                    if (sum === 0) return '';
+                                    return (value * 100 / sum).toFixed(1) + "%";
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            renderPie('regionPieAP', data.region_screens.AP);
+            renderPie('regionPieOB', data.region_screens.OB);
         }
 
         // ---- Weekly growth line charts (screens + blocks, AP + OB) ----

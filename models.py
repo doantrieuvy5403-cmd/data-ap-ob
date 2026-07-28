@@ -26,9 +26,11 @@ class ApartmentRecord(db.Model):
     infrastructure = db.Column(db.String(50))
     occupancy = db.Column(db.String(50))
     classification = db.Column(db.String(50))
+    num_units = db.Column(db.String(50))
     previous_operator = db.Column(db.String(100))
     total_screens = db.Column(db.Integer)
     digital_standee = db.Column(db.Integer)
+    sl_led = db.Column(db.Integer)
     screens_in_elevator = db.Column(db.Integer)
     screens_outside_elevator = db.Column(db.Integer)
     p9000 = db.Column(db.Integer)
@@ -63,9 +65,11 @@ class ApartmentRecord(db.Model):
             "infrastructure": self.infrastructure,
             "occupancy": self.occupancy,
             "classification": self.classification,
+            "num_units": self.num_units,
             "previous_operator": self.previous_operator,
             "total_screens": self.total_screens,
             "digital_standee": self.digital_standee,
+            "sl_led": self.sl_led,
             "screens_in_elevator": self.screens_in_elevator,
             "screens_outside_elevator": self.screens_outside_elevator,
             "p9000": self.p9000,

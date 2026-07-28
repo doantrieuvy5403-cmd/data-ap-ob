@@ -118,6 +118,17 @@
                 </select>
             </div>
 
+            <!-- Num Units -->
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">SL Căn hộ (AP) / Văn phòng (OB)</label>
+                <select name="num_units" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">-- Chọn --</option>
+                    {% for u in ['<300 căn', '300-500 căn', '500-800 căn', '800-1000 căn', '>1000 căn'] %}
+                        <option value="{{ u }}" {% if record and record.num_units == u %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <!-- Must have -->
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Must have</label>
@@ -196,6 +207,12 @@
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-blue-500 mb-1.5">Digital Standee</label>
                 <input type="number" name="digital_standee" value="{{ record.digital_standee if record else '' }}"
+                       class="w-full rounded-xl border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-blue-500 mb-1.5">SL Led</label>
+                <input type="number" name="sl_led" value="{{ record.sl_led if record else '' }}"
                        class="w-full rounded-xl border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
             </div>
         </div>

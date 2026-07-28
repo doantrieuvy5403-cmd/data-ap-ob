@@ -169,6 +169,7 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Người PT2</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Người PT3</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Phân loại</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">{% if category == 'OB' %}SL Văn phòng{% else %}SL Căn hộ{% endif %}</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Must have</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Giá bán</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">CSVC</th>
@@ -178,6 +179,7 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Màn ngoài thang</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Tổng SL màn</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-blue-600">Digital Standee</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap text-blue-600">SL Led</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">Thao tác</th>
             </tr>
         </thead>
@@ -212,6 +214,7 @@
                 <td class="px-4 py-3 text-sm text-slate-700">{{ pt_parts[1]|trim if pt_parts|length > 1 else '' }}</td>
                 <td class="px-4 py-3 text-sm text-slate-700">{{ pt_parts[2]|trim if pt_parts|length > 2 else '' }}</td>
                 <td class="px-4 py-3 text-sm text-slate-700">{{ record.classification or '' }}</td>
+                <td class="px-4 py-3 text-sm text-slate-700">{{ record.num_units or '' }}</td>
                 <td class="px-4 py-3 text-sm text-center">
                     {% if record.must_have %}
                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 bg-rose-50 text-rose-700 ring-rose-600/20">★ Must have</span>
@@ -225,6 +228,7 @@
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.screens_outside_elevator if record.screens_outside_elevator is not none else '' }}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-slate-800 text-center">{{ record.total_screens or 0 }}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">{{ record.digital_standee or 0 }}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">{{ record.sl_led or 0 }}</td>
                 <td class="px-4 py-3 text-sm font-medium whitespace-nowrap flex gap-2 justify-end">
                     <div class="flex items-center gap-3">
                         <a href="{{ url_for('edit_record', id=record.id, next=request.url) }}"
@@ -235,7 +239,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="19" class="px-4 py-12 text-center text-sm text-slate-400">
+                <td colspan="21" class="px-4 py-12 text-center text-sm text-slate-400">
                     Không có dữ liệu
                 </td>
             </tr>

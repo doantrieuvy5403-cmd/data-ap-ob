@@ -388,7 +388,9 @@ def _ensure_schema():
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('apartment_record', 'total_deployed', "total_deployed INTEGER DEFAULT 0")
     add_col('apartment_record', 'digital_standee', "digital_standee INTEGER DEFAULT 0")
+    add_col('apartment_record', 'sl_led', "sl_led INTEGER DEFAULT 0")
     add_col('apartment_record', 'electricity_status', "electricity_status VARCHAR(50)")
+    add_col('apartment_record', 'num_units', "num_units VARCHAR(50)")
     add_col('apartment_record', 'install_note', "install_note TEXT")
     add_col('apartment_record', 'install_date', "install_date TIMESTAMP",
             "UPDATE apartment_record SET install_date = updated_at WHERE status IN ('Deal', 'Done') AND install_date IS NULL")
@@ -623,9 +625,11 @@ def add_record(category, region):
             infrastructure=request.form.get('infrastructure'),
             occupancy=get_upper('occupancy'),
             classification=get_upper('classification'),
+            num_units=request.form.get('num_units'),
             previous_operator=get_upper('previous_operator'),
             total_screens=request.form.get('total_screens', type=int),
             digital_standee=request.form.get('digital_standee', type=int),
+            sl_led=request.form.get('sl_led', type=int),
             screens_in_elevator=request.form.get('screens_in_elevator', type=int),
             screens_outside_elevator=request.form.get('screens_outside_elevator', type=int),
             p9000=request.form.get('p9000', type=int),
@@ -687,9 +691,11 @@ def edit_record(id):
         record.infrastructure = request.form.get('infrastructure')
         record.occupancy = get_upper('occupancy')
         record.classification = get_upper('classification')
+        record.num_units = request.form.get('num_units')
         record.previous_operator = get_upper('previous_operator')
         record.total_screens = request.form.get('total_screens', type=int)
         record.digital_standee = request.form.get('digital_standee', type=int)
+        record.sl_led = request.form.get('sl_led', type=int)
         record.screens_in_elevator = request.form.get('screens_in_elevator', type=int)
         record.screens_outside_elevator = request.form.get('screens_outside_elevator', type=int)
         record.must_have = request.form.get('must_have') or None
@@ -995,6 +1001,22 @@ def api_stats():
         db.func.count(ApartmentRecord.id)
     ).group_by(ApartmentRecord.region, ApartmentRecord.status).all()
 
+    # Deal/Done screens by region and category
+    deal_done_screens = db.session.query(
+        ApartmentRecord.category,
+        ApartmentRecord.region,
+        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
+    ).filter(
+        ApartmentRecord.status.in_(['Deal', 'Done']),
+        ApartmentRecord.region.isnot(None),
+        ApartmentRecord.category.isnot(None)
+    ).group_by(ApartmentRecord.category, ApartmentRecord.region).all()
+    
+    region_screens = {'AP': {}, 'OB': {}}
+    for cat, reg, screens in deal_done_screens:
+        if cat in region_screens:
+            region_screens[cat][reg] = int(screens)
+
     # Summary KPIs
     total = ApartmentRecord.query.count()
     total_mn = ApartmentRecord.query.filter_by(region='MN').count()
@@ -1040,7 +1062,8 @@ def api_stats():
             'AP': [cls_screens['AP'][k] for k in ABC],
             'OB': [cls_screens['OB'][k] for k in ABC],
         },
-        'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]]
+        'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]],
+        'region_screens': region_screens
     })
 
 
@@ -1057,6 +1080,7 @@ APOB_COLUMNS = [
     ('Người PT2', 'pt2'),
     ('Người PT3', 'pt3'),
     ('Phân loại', 'classification'),
+    ('SL Căn hộ / VP', 'num_units'),
     ('Must have', 'must_have'),
     ('Giá bán', 'price_range'),
     ('CSVC', 'infrastructure'),
@@ -1066,8 +1090,9 @@ APOB_COLUMNS = [
     ('Màn ngoài thang', 'screens_outside_elevator'),
     ('Tổng SL màn', 'total_screens'),
     ('Digital Standee', 'digital_standee'),
+    ('SL Led', 'sl_led'),
 ]
-APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens', 'digital_standee'}
+APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens', 'digital_standee', 'sl_led'}
 # Accept a few legacy/alias header names on import (old exports / variants)
 APOB_IMPORT_ALIASES = {
     'Quận/Khu vực': 'district', 'TP/Tỉnh': 'city', 'Tiến độ': 'status',
