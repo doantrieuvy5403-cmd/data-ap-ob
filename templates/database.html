@@ -227,7 +227,12 @@
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.screens_in_elevator if record.screens_in_elevator is not none else '' }}</td>
                 <td class="px-4 py-3 text-sm text-slate-700 text-center">{{ record.screens_outside_elevator if record.screens_outside_elevator is not none else '' }}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-slate-800 text-center">{{ record.total_screens or 0 }}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">{{ record.digital_standee or 0 }}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">
+                    {{ record.digital_standee or 0 }}
+                    {% if record.digital_standee_status %}
+                        <br><span class="text-xs font-normal text-slate-500">({{ record.digital_standee_status }})</span>
+                    {% endif %}
+                </td>
                 <td class="px-4 py-3 text-sm font-semibold text-blue-700 text-center">{{ record.sl_led or 0 }}</td>
                 <td class="px-4 py-3 text-sm font-medium whitespace-nowrap flex gap-2 justify-end">
                     <div class="flex items-center gap-3">

@@ -388,6 +388,7 @@ def _ensure_schema():
     add_col('apartment_record', 'address', "address VARCHAR(255)")
     add_col('apartment_record', 'total_deployed', "total_deployed INTEGER DEFAULT 0")
     add_col('apartment_record', 'digital_standee', "digital_standee INTEGER DEFAULT 0")
+    add_col('apartment_record', 'digital_standee_status', "digital_standee_status VARCHAR(50)")
     add_col('apartment_record', 'sl_led', "sl_led INTEGER DEFAULT 0")
     add_col('apartment_record', 'electricity_status', "electricity_status VARCHAR(50)")
     add_col('apartment_record', 'num_units', "num_units VARCHAR(50)")
@@ -629,6 +630,7 @@ def add_record(category, region):
             previous_operator=get_upper('previous_operator'),
             total_screens=request.form.get('total_screens', type=int),
             digital_standee=request.form.get('digital_standee', type=int),
+            digital_standee_status=request.form.get('digital_standee_status') or None,
             sl_led=request.form.get('sl_led', type=int),
             screens_in_elevator=request.form.get('screens_in_elevator', type=int),
             screens_outside_elevator=request.form.get('screens_outside_elevator', type=int),
@@ -695,6 +697,7 @@ def edit_record(id):
         record.previous_operator = get_upper('previous_operator')
         record.total_screens = request.form.get('total_screens', type=int)
         record.digital_standee = request.form.get('digital_standee', type=int)
+        record.digital_standee_status = request.form.get('digital_standee_status') or None
         record.sl_led = request.form.get('sl_led', type=int)
         record.screens_in_elevator = request.form.get('screens_in_elevator', type=int)
         record.screens_outside_elevator = request.form.get('screens_outside_elevator', type=int)
@@ -1090,6 +1093,7 @@ APOB_COLUMNS = [
     ('Màn ngoài thang', 'screens_outside_elevator'),
     ('Tổng SL màn', 'total_screens'),
     ('Digital Standee', 'digital_standee'),
+    ('Trạng thái Standee', 'digital_standee_status'),
     ('SL Led', 'sl_led'),
 ]
 APOB_INT_FIELDS = {'stt', 'num_blocks', 'screens_in_elevator', 'screens_outside_elevator', 'total_screens', 'digital_standee', 'sl_led'}

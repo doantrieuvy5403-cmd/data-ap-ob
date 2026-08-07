@@ -30,6 +30,7 @@ class ApartmentRecord(db.Model):
     previous_operator = db.Column(db.String(100))
     total_screens = db.Column(db.Integer)
     digital_standee = db.Column(db.Integer)
+    digital_standee_status = db.Column(db.String(50))
     sl_led = db.Column(db.Integer)
     screens_in_elevator = db.Column(db.Integer)
     screens_outside_elevator = db.Column(db.Integer)
@@ -69,6 +70,7 @@ class ApartmentRecord(db.Model):
             "previous_operator": self.previous_operator,
             "total_screens": self.total_screens,
             "digital_standee": self.digital_standee,
+            "digital_standee_status": self.digital_standee_status,
             "sl_led": self.sl_led,
             "screens_in_elevator": self.screens_in_elevator,
             "screens_outside_elevator": self.screens_outside_elevator,

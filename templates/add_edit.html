@@ -206,8 +206,15 @@
             </div>
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-blue-500 mb-1.5">Digital Standee</label>
-                <input type="number" name="digital_standee" value="{{ record.digital_standee if record else '' }}"
-                       class="w-full rounded-xl border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
+                <div class="flex gap-2">
+                    <input type="number" name="digital_standee" value="{{ record.digital_standee if record else '' }}" placeholder="SL"
+                           class="w-20 rounded-xl border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
+                    <select name="digital_standee_status" class="flex-1 rounded-xl border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
+                        <option value="">- Trạng thái -</option>
+                        <option value="Sponsor" {% if record and record.digital_standee_status == 'Sponsor' %}selected{% endif %}>Sponsor</option>
+                        <option value="For Lease" {% if record and record.digital_standee_status == 'For Lease' %}selected{% endif %}>For Lease</option>
+                    </select>
+                </div>
             </div>
             
             <div>
