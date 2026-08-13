@@ -20,7 +20,7 @@
 </div>
 
 <!-- Timeline Infographic -->
-<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in overflow-hidden">
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
     <div class="flex items-center justify-between flex-wrap gap-2 mb-8">
         <div class="flex items-center gap-3">
             <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-fuchsia-50 text-fuchsia-600">🎯</div>
@@ -40,13 +40,13 @@
             <div id="timelineProgressLine" class="absolute top-2.5 left-0 h-3 bg-gradient-to-r from-fuchsia-400 to-fuchsia-600 rounded-full transition-all duration-1000 shadow-md" style="width: 0%"></div>
             
             <!-- Milestones container -->
-            <div id="timelineMilestones" class="relative flex justify-between w-full mt-2">
+            <div id="timelineMilestones" class="relative w-full mt-2 h-28">
                 <!-- Javascript will inject milestones here -->
             </div>
             
             <!-- Today Marker -->
             <div id="timelineTodayMarker" class="absolute top-[-24px] flex flex-col items-center transition-all duration-1000 z-10" style="left: 0%; transform: translateX(-50%);">
-                <div class="bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-md mb-1 uppercase tracking-wider whitespace-nowrap">📍 Hôm nay</div>
+                <div id="todayMarkerText" class="bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-md mb-1 uppercase tracking-wider whitespace-nowrap">📍 Hôm nay</div>
                 <div class="w-5 h-5 bg-indigo-600 rounded-full border-4 border-white shadow-lg z-20"></div>
                 <div class="w-0.5 h-16 bg-indigo-600/50 -mt-2"></div>
             </div>
@@ -257,6 +257,10 @@ fetch('/api/stats?category={{ category }}')
         
         document.getElementById('timelineProgressLine').style.width = todayProgress + '%';
         document.getElementById('timelineTodayMarker').style.left = todayProgress + '%';
+        
+        const d = new Date();
+        const todayStr = d.toLocaleDateString('vi-VN');
+        document.getElementById('todayMarkerText').textContent = '📍 Hôm nay (' + todayStr + ')';
         
         const milestonesContainer = document.getElementById('timelineMilestones');
         let milestonesHTML = '';
