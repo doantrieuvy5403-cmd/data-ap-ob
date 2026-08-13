@@ -1016,9 +1016,11 @@ def api_stats():
     ).group_by(ApartmentRecord.category, ApartmentRecord.region).all()
     
     region_screens = {'AP': {}, 'OB': {}}
+    grand_total_screens = 0
     for cat, reg, screens in deal_done_screens:
         if cat in region_screens:
             region_screens[cat][reg] = int(screens)
+        grand_total_screens += int(screens)
 
     # Summary KPIs
     total = ApartmentRecord.query.count()
@@ -1042,6 +1044,7 @@ def api_stats():
             'funnel_total': funnel_total,
             'overall_progress': overall_progress,
         },
+        'grand_total_screens': grand_total_screens,
         'person_progress': _compute_person_progress(category),
         'weekly_growth': _weekly_growth_series(category),
         'screen_progress': _screen_progress(),

@@ -19,6 +19,41 @@
     </form>
 </div>
 
+<!-- Timeline Infographic -->
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in overflow-hidden">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-8">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-fuchsia-50 text-fuchsia-600">🎯</div>
+            <h2 class="text-lg font-bold text-slate-800">Tiến độ theo Mốc thời gian (Timeline)</h2>
+        </div>
+        <div class="text-right">
+            <span class="block text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1">Tổng màn hình hiện tại (Deal & Done toàn quốc)</span>
+            <span id="timelineCurrentScreens" class="text-3xl font-black text-fuchsia-600">0</span>
+        </div>
+    </div>
+    
+    <div class="relative w-full overflow-x-auto pb-10 pt-8 px-4 scrollbar-hide">
+        <div class="min-w-[800px] relative">
+            <!-- Background Line -->
+            <div class="absolute top-3 left-0 w-full h-2 bg-slate-100 rounded-full"></div>
+            <!-- Progress Line -->
+            <div id="timelineProgressLine" class="absolute top-3 left-0 h-2 bg-gradient-to-r from-fuchsia-400 to-fuchsia-600 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            
+            <!-- Milestones container -->
+            <div id="timelineMilestones" class="relative flex justify-between w-full mt-3">
+                <!-- Javascript will inject milestones here -->
+            </div>
+            
+            <!-- Today Marker -->
+            <div id="timelineTodayMarker" class="absolute top-[-18px] flex flex-col items-center transition-all duration-1000 z-10" style="left: 0%">
+                <div class="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm mb-1 uppercase tracking-wider whitespace-nowrap">Hôm nay</div>
+                <div class="w-4 h-4 bg-indigo-600 rounded-full ring-4 ring-white shadow-md"></div>
+                <div class="w-0.5 h-10 bg-indigo-600/30 mt-1"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Screen targets: P6000 (AP) & P1000 (OB) -->
 <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-6 fade-in">
     <div class="flex items-center justify-between flex-wrap gap-2 mb-5">
@@ -199,6 +234,53 @@ function progressColor(pct) {
 fetch('/api/stats?category={{ category }}')
     .then(response => response.json())
     .then(data => {
+        // ---- Timeline Infographic ----
+        const timelineData = [
+            { date: '15/08/2026', timestamp: new Date(2026, 7, 15).getTime(), target: 1060 },
+            { date: '30/09/2026', timestamp: new Date(2026, 8, 30).getTime(), target: 2000 },
+            { date: '31/12/2026', timestamp: new Date(2026, 11, 31).getTime(), target: 2500 },
+            { date: '30/03/2027', timestamp: new Date(2027, 2, 30).getTime(), target: 3500 },
+            { date: '30/06/2027', timestamp: new Date(2027, 5, 30).getTime(), target: 5000 }
+        ];
+        const currentScreens = data.grand_total_screens || 0;
+        document.getElementById('timelineCurrentScreens').textContent = currentScreens;
+        
+        const now = new Date().getTime();
+        const startTimestamp = timelineData[0].timestamp;
+        const endTimestamp = timelineData[timelineData.length - 1].timestamp;
+        const totalDuration = endTimestamp - startTimestamp;
+        
+        let todayProgress = 0;
+        if (now < startTimestamp) todayProgress = 0;
+        else if (now > endTimestamp) todayProgress = 100;
+        else todayProgress = ((now - startTimestamp) / totalDuration) * 100;
+        
+        document.getElementById('timelineProgressLine').style.width = todayProgress + '%';
+        document.getElementById('timelineTodayMarker').style.left = todayProgress + '%';
+        
+        const milestonesContainer = document.getElementById('timelineMilestones');
+        let milestonesHTML = '';
+        
+        timelineData.forEach(m => {
+            const pos = ((m.timestamp - startTimestamp) / totalDuration) * 100;
+            const pctAchieved = m.target ? (currentScreens / m.target * 100).toFixed(1) : 0;
+            const isPassed = now >= m.timestamp;
+            
+            milestonesHTML += `
+                <div class="absolute flex flex-col items-center" style="left: ${pos}%; transform: translateX(-50%); top: -4px;">
+                    <div class="w-4 h-4 rounded-full border-4 border-white shadow-sm z-10 ${isPassed ? 'bg-fuchsia-600' : 'bg-slate-300'}"></div>
+                    <div class="mt-4 text-center">
+                        <div class="text-xs font-bold text-slate-700">${m.date}</div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Mục tiêu</div>
+                        <div class="text-sm font-bold ${currentScreens >= m.target ? 'text-emerald-600' : 'text-slate-800'}">${m.target} <span class="text-xs font-normal">màn</span></div>
+                        <div class="mt-1 px-1.5 py-0.5 bg-slate-100 rounded text-xs font-bold ${pctAchieved >= 100 ? 'text-emerald-600' : 'text-fuchsia-600'}">${pctAchieved}%</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        milestonesContainer.innerHTML = milestonesHTML;
+
         // ---- Screen target donuts (P6000 / P1000) ----
         function screenDonut(canvasId, capId, title, done, target) {
             const filled = Math.min(done, target);          // slice capped at target
