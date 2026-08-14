@@ -240,7 +240,9 @@ fetch('/api/stats?category={{ category }}')
             { date: '30/09/2026', timestamp: new Date(2026, 8, 30).getTime(), target: 2000 },
             { date: '31/12/2026', timestamp: new Date(2026, 11, 31).getTime(), target: 2500 },
             { date: '30/03/2027', timestamp: new Date(2027, 2, 30).getTime(), target: 3500 },
-            { date: '30/06/2027', timestamp: new Date(2027, 5, 30).getTime(), target: 5000 }
+            { date: '30/06/2027', timestamp: new Date(2027, 5, 30).getTime(), target: 4000 },
+            { date: '30/09/2027', timestamp: new Date(2027, 8, 30).getTime(), target: 4500 },
+            { date: '30/12/2027', timestamp: new Date(2027, 11, 30).getTime(), target: 5000 }
         ];
         const currentScreens = data.grand_total_screens || 0;
         document.getElementById('timelineCurrentScreens').textContent = currentScreens;
