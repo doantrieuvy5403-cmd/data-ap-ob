@@ -968,7 +968,9 @@ def api_stats():
     else:
         cls_stages = FUNNEL_STAGES
 
-    class_rows = db.session.query(
+    cls_region = request.args.get('cls_region')
+
+    query = db.session.query(
         ApartmentRecord.category,
         ApartmentRecord.classification,
         db.func.count(ApartmentRecord.id),
@@ -977,7 +979,12 @@ def api_stats():
     ).filter(
         ApartmentRecord.classification.isnot(None),
         ApartmentRecord.status.in_(cls_stages),
-    ).group_by(ApartmentRecord.category, ApartmentRecord.classification).all()
+    )
+    
+    if cls_region:
+        query = query.filter(ApartmentRecord.region == cls_region)
+
+    class_rows = query.group_by(ApartmentRecord.category, ApartmentRecord.classification).all()
 
     ABC = ('A', 'B', 'C')
     cls_detail = {'AP': {}, 'OB': {}}

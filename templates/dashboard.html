@@ -180,6 +180,37 @@
     </div>
 </div>
 
+<!-- Bộ lọc riêng cho biểu đồ Phân loại chi tiết -->
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-5 mb-6 fade-in flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+        <div class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-orange-50 text-orange-600">📊</div>
+        <h2 class="text-base font-bold text-slate-800">Bộ lọc riêng cho Biểu đồ Phân loại (Tròn & Cột)</h2>
+    </div>
+    <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Vùng miền:</label>
+            <select id="clsRegionFilter" onchange="updateClassificationCharts()" class="rounded-lg border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-sm">
+                <option value="">Tất cả các miền</option>
+                <option value="MB">Miền Bắc (MB)</option>
+                <option value="MT">Miền Trung (MT)</option>
+                <option value="MN">Miền Nam (MN)</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Trạng thái:</label>
+            <select id="clsStatusFilter" onchange="updateClassificationCharts()" class="rounded-lg border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-sm">
+                <option value="">Tất cả (Ngoại trừ Stop)</option>
+                <option value="Research">Research</option>
+                <option value="Plan B">Plan B</option>
+                <option value="Plan A">Plan A</option>
+                <option value="Deal">Deal</option>
+                <option value="Done">Done</option>
+                <option value="Install">Install</option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
         <h2 class="text-lg font-bold text-slate-800 mb-4">Phân loại chi tiết — AP (Căn hộ) (Biểu đồ cột)</h2>
@@ -539,7 +570,22 @@ fetch('/api/stats?category={{ category }}')
             abcPie('classScreensOB', cs.OB);
         };
         
-        window.renderClassification(data);
+        // Initial render
+        renderClassification(data);
+        
+        window.updateClassificationCharts = function() {
+            const region = document.getElementById('clsRegionFilter').value;
+            const status = document.getElementById('clsStatusFilter').value;
+            let url = `/api/stats?category={{ category }}`;
+            if (region) url += `&cls_region=${region}`;
+            if (status) url += `&cls_stages=${encodeURIComponent(status)}`;
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(newData => {
+                    renderClassification(newData);
+                });
+        };
     });
 
 function reloadClassCharts() {
