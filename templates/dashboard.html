@@ -180,11 +180,11 @@
     </div>
 </div>
 
-<!-- Bộ lọc riêng cho biểu đồ Phân loại chi tiết -->
+<!-- Bộ lọc riêng cho biểu đồ Phân loại chi tiết và Quy mô -->
 <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-5 mb-6 fade-in flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-2">
         <div class="h-10 w-10 rounded-lg flex items-center justify-center text-xl bg-orange-50 text-orange-600">📊</div>
-        <h2 class="text-base font-bold text-slate-800">Bộ lọc riêng cho Biểu đồ Phân loại (Tròn & Cột)</h2>
+        <h2 class="text-base font-bold text-slate-800">Bộ lọc riêng cho Biểu đồ Phân loại & Quy mô</h2>
     </div>
     <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
@@ -244,6 +244,32 @@
         <h2 class="text-lg font-bold text-slate-800 mb-2">Phân loại chi tiết — OB (Văn phòng)</h2>
         <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Màn hình</p>
         <canvas id="classScreensOB" height="120"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 mb-6">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Quy mô — AP (Căn hộ)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
+        <canvas id="nuGroupAP" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Quy mô — OB (Văn phòng)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
+        <canvas id="nuGroupOB" height="120"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Quy mô — AP (Căn hộ)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Màn hình</p>
+        <canvas id="nuScreensAP" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in">
+        <h2 class="text-lg font-bold text-slate-800 mb-2">Quy mô — OB (Văn phòng)</h2>
+        <p class="text-sm text-slate-500 mb-4 font-medium italic">Đơn vị: Số lượng Màn hình</p>
+        <canvas id="nuScreensOB" height="120"></canvas>
     </div>
 </div>
 
@@ -568,6 +594,42 @@ fetch('/api/stats?category={{ category }}')
             abcPie('classGroupOB', cg.OB);
             abcPie('classScreensAP', cs.AP);
             abcPie('classScreensOB', cs.OB);
+
+            // ---- Num Units (Quy mô căn hộ) pie charts ----
+            const nug = clsData.num_units_grouped || { labels: [], AP: [], OB: [] };
+            const nus = clsData.num_units_screens || { labels: [], AP: [], OB: [] };
+            const nuColors = ['#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'];
+
+            function nuPie(canvasId, arr) {
+                if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
+                chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
+                    type: 'pie',
+                    data: {
+                        labels: nug.labels,
+                        datasets: [{ data: arr, backgroundColor: nuColors }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            datalabels: {
+                                color: '#fff', font: { weight: 'bold', size: 11 },
+                                formatter: (v, ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total ? (v / total * 100).toFixed(1) : 0;
+                                    return v ? `${pct}%` : '';
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            if (document.getElementById('nuGroupAP')) {
+                nuPie('nuGroupAP', nug.AP);
+                nuPie('nuGroupOB', nug.OB);
+                nuPie('nuScreensAP', nus.AP);
+                nuPie('nuScreensOB', nus.OB);
+            }
         };
         
         // Initial render

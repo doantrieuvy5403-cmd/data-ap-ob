@@ -805,6 +805,7 @@ def _install_totals(must_have_only=False, region=None, category=None):
 
     screens, blocks, buildings, deployed = 0, 0, 0, 0
     deployed_blocks, deployed_buildings = 0, 0
+    loaded_100_buildings, loading_buildings = 0, 0
 
     for r in q.all():
         s = int(r.total_screens or 0)
@@ -819,6 +820,18 @@ def _install_totals(must_have_only=False, region=None, category=None):
         if d > 0:
             deployed_blocks += b
             deployed_buildings += 1
+            
+        if s > 0:
+            if d >= s:
+                loaded_100_buildings += 1
+            else:
+                loading_buildings += 1
+        else:
+            # If no screens are planned, technically it's fully loaded if deployed >= 0, but let's count as loaded_100 if d>=s
+            if d >= s:
+                loaded_100_buildings += 1
+            else:
+                loading_buildings += 1
 
     return {
         'screens': screens,
@@ -827,6 +840,10 @@ def _install_totals(must_have_only=False, region=None, category=None):
         'deployed': deployed,
         'deployed_blocks': deployed_blocks,
         'deployed_buildings': deployed_buildings,
+        'loaded_100_buildings': loaded_100_buildings,
+        'loading_buildings': loading_buildings,
+        'loaded_100_pct': round(loaded_100_buildings / buildings * 100, 1) if buildings else 0,
+        'loading_pct_by_building': round(loading_buildings / buildings * 100, 1) if buildings else 0,
         'loading_pct': round(deployed / screens * 100, 1) if screens else 0.0,
     }
 
@@ -1004,6 +1021,42 @@ def api_stats():
         cls_screens[cat][first] += int(scrns)
     detail_labels = sorted(set(cls_detail['AP']) | set(cls_detail['OB']))
 
+    # Num units distribution
+    nu_rows = db.session.query(
+        ApartmentRecord.category,
+        ApartmentRecord.num_units,
+        db.func.count(ApartmentRecord.id),
+        db.func.coalesce(db.func.sum(ApartmentRecord.num_blocks), 0),
+        db.func.coalesce(db.func.sum(ApartmentRecord.total_screens), 0)
+    ).filter(
+        ApartmentRecord.num_units.isnot(None),
+        ApartmentRecord.status.in_(cls_stages),
+    )
+    if cls_region:
+        nu_rows = nu_rows.filter(ApartmentRecord.region == cls_region)
+    nu_rows = nu_rows.group_by(ApartmentRecord.category, ApartmentRecord.num_units).all()
+
+    NU_LABELS = {
+        '<300 căn': 'Chung cư đơn (Single Block)',
+        '300-500 căn': 'Tiêu chuẩn',
+        '500-800 căn': 'Khu tổ hợp/ Phức hợp',
+        '800-1000 căn': 'Khu đô thị',
+        '>1000 căn': 'Đại đô thị'
+    }
+    nu_grouped = {'AP': {k: 0 for k in NU_LABELS.values()}, 'OB': {k: 0 for k in NU_LABELS.values()}}
+    nu_screens = {'AP': {k: 0 for k in NU_LABELS.values()}, 'OB': {k: 0 for k in NU_LABELS.values()}}
+
+    for cat, raw_val, cnt, blks, scrns in nu_rows:
+        if cat not in ('AP', 'OB') or not raw_val:
+            continue
+        mapped_label = NU_LABELS.get(raw_val.strip())
+        if not mapped_label:
+            continue
+        nu_grouped[cat][mapped_label] += int(blks)
+        nu_screens[cat][mapped_label] += int(scrns)
+
+    nu_labels_list = list(NU_LABELS.values())
+
     # MN vs MB by status
     region_status = db.session.query(
         ApartmentRecord.region,
@@ -1068,12 +1121,22 @@ def api_stats():
         'classification_grouped': {
             'labels': list(ABC),
             'AP': [cls_grouped['AP'][k] for k in ABC],
-            'OB': [cls_grouped['OB'][k] for k in ABC],
+            'OB': [cls_grouped['OB'][k] for k in ABC]
         },
         'classification_screens': {
             'labels': list(ABC),
             'AP': [cls_screens['AP'][k] for k in ABC],
             'OB': [cls_screens['OB'][k] for k in ABC],
+        },
+        'num_units_grouped': {
+            'labels': nu_labels_list,
+            'AP': [nu_grouped['AP'][k] for k in nu_labels_list],
+            'OB': [nu_grouped['OB'][k] for k in nu_labels_list]
+        },
+        'num_units_screens': {
+            'labels': nu_labels_list,
+            'AP': [nu_screens['AP'][k] for k in nu_labels_list],
+            'OB': [nu_screens['OB'][k] for k in nu_labels_list]
         },
         'region_status': [{'region': r[0], 'status': r[1], 'count': r[2]} for r in region_status if r[1]],
         'region_screens': region_screens
@@ -1320,6 +1383,7 @@ def install():
 
     city = request.args.get('city', '').strip()
     status = request.args.get('status', '').strip()
+    loading_status = request.args.get('loading_status', '').strip()
 
     query = ApartmentRecord.query.filter(ApartmentRecord.status.in_(['Deal', 'Done']))
     if category:
@@ -1328,6 +1392,10 @@ def install():
         query = query.filter_by(city=city)
     if status:
         query = query.filter_by(status=status)
+    if loading_status == 'loaded_100':
+        query = query.filter(ApartmentRecord.total_deployed >= ApartmentRecord.total_screens)
+    elif loading_status == 'loading':
+        query = query.filter(ApartmentRecord.total_deployed < ApartmentRecord.total_screens)
     if search:
         query = query.filter(db.or_(
             ApartmentRecord.building_name.contains(search),
@@ -1358,6 +1426,7 @@ def install():
                            search=search,
                            city=city,
                            status=status,
+                           loading_status=loading_status,
                            cities=sorted(cities),
                            building_names=sorted(building_names),
                            totals=totals)

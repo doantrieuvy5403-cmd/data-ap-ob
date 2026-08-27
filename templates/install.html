@@ -15,7 +15,7 @@
     </div>
 
     <!-- Summary -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
         <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-6 fade-in">
             <div class="flex items-center gap-3">
                 <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-50 text-indigo-600">🖥️</div>
@@ -62,11 +62,21 @@
                 </div>
             </div>
         </div>
+        <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md transition p-4 fade-in">
+            <div class="flex items-center gap-3">
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl bg-blue-50 text-blue-600">🔄</div>
+                <div class="flex-1">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Trạng thái Loading</p>
+                    <p class="text-sm font-bold text-slate-900 leading-tight">Loaded 100%: <span class="text-emerald-600 font-black">{{ totals.loaded_100_pct }}%</span></p>
+                    <p class="text-sm font-bold text-slate-900 leading-tight">Đang loading: <span class="text-amber-600 font-black">{{ totals.loading_pct_by_building }}%</span></p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Filters + Import/Export -->
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-8 fade-in">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <div class="md:col-span-2">
                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tìm kiếm chung cư</label>
                 <input type="text" name="search" value="{{ search }}" list="building-names" placeholder="Tên chung cư, địa chỉ..."
@@ -102,8 +112,16 @@
                     <option value="Done" {% if status == 'Done' %}selected{% endif %}>Done</option>
                 </select>
             </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Loading %</label>
+                <select name="loading_status" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">Tất cả</option>
+                    <option value="loaded_100" {% if loading_status == 'loaded_100' %}selected{% endif %}>Loaded 100%</option>
+                    <option value="loading" {% if loading_status == 'loading' %}selected{% endif %}>Đang loading</option>
+                </select>
+            </div>
 
-            <div class="md:col-span-5 flex flex-wrap items-end gap-2">
+            <div class="md:col-span-6 flex flex-wrap items-end gap-2">
                 <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">🔍 Lọc</button>
                 <a href="{{ url_for('install') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">Xóa lọc</a>
             </div>
