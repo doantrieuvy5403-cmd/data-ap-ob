@@ -107,11 +107,7 @@
 
     <!-- Pagination -->
     <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 fade-in">
-        <p class="text-sm text-slate-500">
-            Hiển thị <span class="font-medium text-slate-900">{{ (records.page - 1) * records.per_page + 1 }}</span>
-            đến <span class="font-medium text-slate-900">{{ min(records.page * records.per_page, records.total) if records.total else 0 }}</span>
-            trong số <span class="font-medium text-slate-900">{{ records.total }}</span> kết quả
-        </p>
+        <div class="text-sm text-slate-500">Trang <span class="font-semibold text-slate-700">{{ records.page }}</span> / {{ records.pages }} ({{ records.total }} bản ghi)</div>
         <div class="flex items-center gap-1">
             {% if records.has_prev %}
             <a href="{{ url_for('lost', page=records.prev_num, category=category, region=region, search=search) }}"
