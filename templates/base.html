@@ -88,6 +88,15 @@
                 </a>
 
                 <div class="pt-5 pb-1.5 px-3.5">
+                    <p class="text-[0.65rem] tracking-wider text-slate-500 uppercase font-semibold">Dự án Lost (AP & OB)</p>
+                </div>
+                <a href="{{ url_for('lost') }}"
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition {% if request.endpoint == 'lost' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-slate-300 hover:bg-white/5 hover:text-white{% endif %}">
+                    <span class="text-base">❌</span>
+                    <span>Dự án Lost</span>
+                </a>
+
+                <div class="pt-5 pb-1.5 px-3.5">
                     <p class="text-[0.65rem] tracking-wider text-slate-500 uppercase font-semibold">Database OB (Văn phòng)</p>
                 </div>
                 <a href="{{ url_for('database', category='ob', region='mn') }}"

@@ -44,6 +44,7 @@ class ApartmentRecord(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     install_date = db.Column(db.DateTime)
+    lost_reason = db.Column(db.String(255))
 
     def to_dict(self):
         return {

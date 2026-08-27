@@ -395,6 +395,7 @@ def _ensure_schema():
     add_col('apartment_record', 'install_note', "install_note TEXT")
     add_col('apartment_record', 'install_date', "install_date TIMESTAMP",
             "UPDATE apartment_record SET install_date = updated_at WHERE status IN ('Deal', 'Done') AND install_date IS NULL")
+    add_col('apartment_record', 'lost_reason', "lost_reason VARCHAR(255)")
     add_col('weekly_growth', 'category', "category VARCHAR(10)",
             "UPDATE weekly_growth SET category='AP' WHERE category IS NULL")
     for col in ('plan_b_blocks', 'plan_a_blocks', 'deal_blocks', 'done_blocks'):
@@ -1430,6 +1431,59 @@ def install():
                            cities=sorted(cities),
                            building_names=sorted(building_names),
                            totals=totals)
+
+
+@app.route('/lost')
+@login_required
+def lost():
+    """DataBase Lost: list of projects with status Lost."""
+    category = request.args.get('category', '').upper()
+    category = category if category in ('AP', 'OB') else ''
+    search = request.args.get('search', '').strip()
+    region = request.args.get('region', '').strip()
+
+    query = ApartmentRecord.query.filter_by(status='Lost')
+    
+    if category:
+        query = query.filter_by(category=category)
+    if region:
+        query = query.filter_by(region=region)
+    if search:
+        query = query.filter(db.or_(
+            ApartmentRecord.building_name.contains(search),
+            ApartmentRecord.district.contains(search),
+            ApartmentRecord.city.contains(search),
+        ))
+        
+    query = query.order_by(
+        ApartmentRecord.city.is_(None), ApartmentRecord.city.asc(),
+        ApartmentRecord.building_name.is_(None), ApartmentRecord.building_name.asc(),
+        ApartmentRecord.id.desc())
+
+    page = request.args.get('page', 1, type=int)
+    records = query.paginate(page=page, per_page=50, error_out=False)
+    
+    return render_template('lost.html',
+                           records=records,
+                           category=category,
+                           region=region,
+                           search=search)
+
+@app.route('/lost/<int:id>/update_reason', methods=['POST'])
+@login_required
+def lost_update_reason(id):
+    rec = ApartmentRecord.query.get_or_404(id)
+    if rec.status != 'Lost':
+        return jsonify({'success': False, 'error': 'Not a lost project'}), 400
+        
+    data = request.json
+    rec.lost_reason = data.get('lost_reason', '')
+    try:
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/install/<int:id>/edit', methods=['GET', 'POST'])
