@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Dự án Unqualified - DATA AP OB{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6 md:p-8">
+
+    <!-- Page header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dự án Unqualified</h1>
+        <p class="text-sm text-slate-500 mt-1">
+            Danh sách các dự án không thành công. Trạng thái <strong>Unqualified</strong>.
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 mb-8 fade-in">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tìm kiếm chung cư</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Tên chung cư, quận, thành phố..."
+                       class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" autocomplete="off">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Vùng miền</label>
+                <select name="region" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">Tất cả (MB, MT, MN)</option>
+                    <option value="MB" {% if region == 'MB' %}selected{% endif %}>Miền Bắc (MB)</option>
+                    <option value="MT" {% if region == 'MT' %}selected{% endif %}>Miền Trung (MT)</option>
+                    <option value="MN" {% if region == 'MN' %}selected{% endif %}>Miền Nam (MN)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Loại Hình</label>
+                <select name="category" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">Tất cả (AP + OB)</option>
+                    <option value="AP" {% if category == 'AP' %}selected{% endif %}>AP (Căn hộ)</option>
+                    <option value="OB" {% if category == 'OB' %}selected{% endif %}>OB (Văn phòng)</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-4 flex flex-wrap items-end gap-2">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">🔍 Lọc</button>
+                <a href="{{ url_for('unqualified') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">Xóa lọc</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm fade-in">
+        <table class="min-w-full divide-y divide-slate-100">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">STT</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Tên chung cư</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Phân loại</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Thành phố</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Trạng thái</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 w-1/3">Lý do (Lưu tự động)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for r in records.items %}
+                <tr class="hover:bg-slate-50/70 transition">
+                    <td class="px-4 py-3 text-sm text-slate-700">{{ loop.index + (records.page - 1) * records.per_page }}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-800">{{ r.building_name or '' }}</td>
+                    <td class="px-4 py-3 text-sm">
+                        {% if r.category %}
+                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1
+                            {% if r.category == 'AP' %}bg-blue-50 text-blue-700 ring-blue-600/20{% else %}bg-violet-50 text-violet-700 ring-violet-600/20{% endif %}">
+                            {{ r.category }} - {{ r.region }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-slate-700">{{ r.city or '' }}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-500">
+                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Unqualified</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex flex-col gap-2 w-full max-w-sm relative">
+                            <select onchange="handleReasonChange({{ r.id }}, this)" class="w-full rounded-lg border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition shadow-sm">
+                                <option value="">--- Chọn lý do ---</option>
+                                {% set standard_reasons = ['Sai thời điểm', 'Thua về giá', 'Tiếp cận sai người quyết định', 'BQT/ BQL từ chối'] %}
+                                {% for rs in standard_reasons %}
+                                <option value="{{ rs }}" {% if r.lost_reason == rs %}selected{% endif %}>{{ rs }}</option>
+                                {% endfor %}
+                                <option value="Other" {% if r.lost_reason and r.lost_reason not in standard_reasons %}selected{% endif %}>Other (Lý do khác)</option>
+                            </select>
+                            
+                            <input type="text" id="other_input_{{ r.id }}" 
+                                   class="w-full rounded-lg border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition {% if not (r.lost_reason and r.lost_reason not in standard_reasons) %}hidden{% endif %}"
+                                   placeholder="Ghi rõ lý do khác..." 
+                                   value="{% if r.lost_reason and r.lost_reason not in standard_reasons %}{{ r.lost_reason }}{% endif %}"
+                                   onblur="saveOtherReason({{ r.id }}, this)">
+                            <span id="save_status_{{ r.id }}" class="absolute -right-16 top-2 text-xs text-emerald-600 font-bold hidden transition-opacity">✓ Đã lưu</span>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">Không tìm thấy dự án Unqualified nào.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 fade-in">
+        <div class="text-sm text-slate-500">Trang <span class="font-semibold text-slate-700">{{ records.page }}</span> / {{ records.pages }} ({{ records.total }} bản ghi)</div>
+        <div class="flex items-center gap-1">
+            {% if records.has_prev %}
+            <a href="{{ url_for('unqualified', page=records.prev_num, category=category, region=region, search=search) }}"
+               class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Trước</a>
+            {% endif %}
+            
+            {% for p in records.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    {% if p == records.page %}
+                    <span class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm">{{ p }}</span>
+                    {% else %}
+                    <a href="{{ url_for('unqualified', page=p, category=category, region=region, search=search) }}"
+                       class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">{{ p }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="px-2 text-slate-400">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if records.has_next %}
+            <a href="{{ url_for('unqualified', page=records.next_num, category=category, region=region, search=search) }}"
+               class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Sau</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleReasonChange(id, selectEl) {
+        const otherInput = document.getElementById(`other_input_${id}`);
+        if (selectEl.value === 'Other') {
+            otherInput.classList.remove('hidden');
+            otherInput.focus();
+            // Don't save yet, wait for them to type and blur
+        } else {
+            otherInput.classList.add('hidden');
+            otherInput.value = '';
+            saveReason(id, selectEl.value);
+        }
+    }
+    
+    function saveOtherReason(id, inputEl) {
+        if (inputEl.value.trim() !== '') {
+            saveReason(id, inputEl.value.trim());
+        }
+    }
+    
+    function saveReason(id, reasonValue) {
+        fetch(`/unqualified/${id}/update_reason`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lost_reason: reasonValue })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const statusEl = document.getElementById(`save_status_${id}`);
+                statusEl.classList.remove('hidden');
+                setTimeout(() => statusEl.classList.add('hidden'), 2000);
+            } else {
+                alert('Có lỗi xảy ra khi lưu: ' + data.error);
+            }
+        })
+        .catch(err => {
+            alert('Lỗi kết nối mạng!');
+        });
+    }
+</script>
+{% endblock %}
