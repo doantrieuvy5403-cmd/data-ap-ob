@@ -475,7 +475,7 @@ def index():
 
     # Status breakdown (fixed display order: 2 rows of 5)
     STATUS_ORDER = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done',
-                    'Code', 'Fail', 'Pending', 'Lost', 'Reject']
+                    'Code', 'Fail', 'Pending', 'Unqualified', 'Reject']
     raw = dict(db.session.query(
         ApartmentRecord.status,
         db.func.count(ApartmentRecord.id)
@@ -1433,16 +1433,16 @@ def install():
                            totals=totals)
 
 
-@app.route('/lost')
+@app.route('/unqualified')
 @login_required
-def lost():
-    """DataBase Lost: list of projects with status Lost."""
+def unqualified():
+    """DataBase Unqualified: list of projects with status Unqualified."""
     category = request.args.get('category', '').upper()
     category = category if category in ('AP', 'OB') else ''
     search = request.args.get('search', '').strip()
     region = request.args.get('region', '').strip()
 
-    query = ApartmentRecord.query.filter_by(status='Lost')
+    query = ApartmentRecord.query.filter_by(status='Unqualified')
     
     if category:
         query = query.filter_by(category=category)
@@ -1463,18 +1463,18 @@ def lost():
     page = request.args.get('page', 1, type=int)
     records = query.paginate(page=page, per_page=50, error_out=False)
     
-    return render_template('lost.html',
+    return render_template('unqualified.html',
                            records=records,
                            category=category,
                            region=region,
                            search=search)
 
-@app.route('/lost/<int:id>/update_reason', methods=['POST'])
+@app.route('/unqualified/<int:id>/update_reason', methods=['POST'])
 @login_required
-def lost_update_reason(id):
+def unqualified_update_reason(id):
     rec = ApartmentRecord.query.get_or_404(id)
-    if rec.status != 'Lost':
-        return jsonify({'success': False, 'error': 'Not a lost project'}), 400
+    if rec.status != 'Unqualified':
+        return jsonify({'success': False, 'error': 'Not an unqualified project'}), 400
         
     data = request.json
     rec.lost_reason = data.get('lost_reason', '')

@@ -62,7 +62,7 @@
                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Trạng thái</label>
                 <select name="status" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
                     <option value="">-- Chọn --</option>
-                    {% for s in ['Research', 'Plan B', 'Plan A', 'Deal', 'Done', 'Code', 'Fail', 'Pending', 'Lost', 'Reject'] %}
+                    {% for s in ['Research', 'Plan B', 'Plan A', 'Deal', 'Done', 'Code', 'Fail', 'Pending', 'Unqualified', 'Reject'] %}
                         <option value="{{ s }}" {% if record and record.status == s %}selected{% endif %}>{{ s }}</option>
                     {% endfor %}
                 </select>
