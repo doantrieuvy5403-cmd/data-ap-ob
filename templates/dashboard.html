@@ -639,7 +639,7 @@ fetch('/api/stats?category={{ category }}')
                                     const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                     if (total === 0 || !v) return '';
                                     const pct = (v / total * 100).toFixed(1);
-                                    return `${v} (${pct}%)`;
+                                    return `${pct}%`;
                                 }
                             }
                         }
