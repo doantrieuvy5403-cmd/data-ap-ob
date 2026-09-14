@@ -1433,16 +1433,16 @@ def install():
                            totals=totals)
 
 
-@app.route('/unqualified')
+@app.route('/lost')
 @login_required
-def unqualified():
-    """DataBase Unqualified: list of projects with status Unqualified."""
+def lost():
+    """DataBase Lost: list of projects with status Lost."""
     category = request.args.get('category', '').upper()
     category = category if category in ('AP', 'OB') else ''
     search = request.args.get('search', '').strip()
     region = request.args.get('region', '').strip()
 
-    query = ApartmentRecord.query.filter_by(status='Unqualified')
+    query = ApartmentRecord.query.filter_by(status='Lost')
     
     if category:
         query = query.filter_by(category=category)
@@ -1463,18 +1463,18 @@ def unqualified():
     page = request.args.get('page', 1, type=int)
     records = query.paginate(page=page, per_page=50, error_out=False)
     
-    return render_template('unqualified.html',
+    return render_template('lost.html',
                            records=records,
                            category=category,
                            region=region,
                            search=search)
 
-@app.route('/unqualified/<int:id>/update_reason', methods=['POST'])
+@app.route('/lost/<int:id>/update_reason', methods=['POST'])
 @login_required
-def unqualified_update_reason(id):
+def lost_update_reason(id):
     rec = ApartmentRecord.query.get_or_404(id)
-    if rec.status != 'Unqualified':
-        return jsonify({'success': False, 'error': 'Not an unqualified project'}), 400
+    if rec.status != 'Lost':
+        return jsonify({'success': False, 'error': 'Not a lost project'}), 400
         
     data = request.json
     rec.lost_reason = data.get('lost_reason', '')
