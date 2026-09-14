@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dự án Lost - DATA AP OB{% endblock %}
+{% block title %}Dự án Unqualified - DATA AP OB{% endblock %}
 
 {% block content %}
 <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-[1400px] mx-auto fade-in">
@@ -8,9 +8,9 @@
     <!-- Header Section -->
     <div class="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dự án Lost</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Dự án Unqualified</h1>
             <p class="mt-2 text-sm text-slate-500">
-                Danh sách các dự án không thành công. Trạng thái <strong>Lost</strong>.
+                Danh sách các dự án không thành công. Trạng thái <strong>Unqualified</strong>.
             </p>
         </div>
     </div>
@@ -43,7 +43,7 @@
 
             <div class="md:col-span-4 flex flex-wrap items-end gap-2">
                 <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition">🔍 Lọc</button>
-                <a href="/lost" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">Xóa lọc</a>
+                <a href="/unqualified" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">Xóa lọc</a>
             </div>
         </form>
     </div>
@@ -76,7 +76,7 @@
                     </td>
                     <td class="px-4 py-3 text-sm text-slate-700">{{ r.city or '' }}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-slate-500">
-                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Lost</span>
+                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Unqualified</span>
                     </td>
                     <td class="px-4 py-3 text-sm">
                         <div class="flex flex-col gap-2 w-full max-w-sm relative">
@@ -100,7 +100,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">Không tìm thấy dự án Lost nào.</td>
+                    <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">Không tìm thấy dự án Unqualified nào.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -112,7 +112,7 @@
         <div class="text-sm text-slate-500">Trang <span class="font-semibold text-slate-700">{{ records.page }}</span> / {{ records.pages }} ({{ records.total }} bản ghi)</div>
         <div class="flex items-center gap-1">
             {% if records.has_prev %}
-            <a href="{{ url_for('lost', page=records.prev_num, category=category, region=region, search=search) }}"
+            <a href="{{ url_for('unqualified', page=records.prev_num, category=category, region=region, search=search) }}"
                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Trước</a>
             {% endif %}
             
@@ -121,7 +121,7 @@
                     {% if p == records.page %}
                     <span class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm">{{ p }}</span>
                     {% else %}
-                    <a href="{{ url_for('lost', page=p, category=category, region=region, search=search) }}"
+                    <a href="{{ url_for('unqualified', page=p, category=category, region=region, search=search) }}"
                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">{{ p }}</a>
                     {% endif %}
                 {% else %}
@@ -130,7 +130,7 @@
             {% endfor %}
 
             {% if records.has_next %}
-            <a href="{{ url_for('lost', page=records.next_num, category=category, region=region, search=search) }}"
+            <a href="{{ url_for('unqualified', page=records.next_num, category=category, region=region, search=search) }}"
                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">Sau</a>
             {% endif %}
         </div>
@@ -160,7 +160,7 @@
     }
     
     function saveReason(id, reasonValue) {
-        fetch(`/lost/${id}/update_reason`, {
+        fetch(`/unqualified/${id}/update_reason`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
