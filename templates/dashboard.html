@@ -582,13 +582,16 @@ fetch('/api/stats?category={{ category }}')
             const cg = clsData.classification_grouped || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
             const cs = clsData.classification_screens || { labels: ['A', 'B', 'C'], AP: [0, 0, 0], OB: [0, 0, 0] };
             
+            // Tone xanh biển cho các options
+            const blueTheme = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1e40af'];
+
             function abcPie(canvasId, arr) {
                 if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
                 chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
                     type: 'pie',
                     data: {
                         labels: cg.labels,
-                        datasets: [{ data: arr, backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+                        datasets: [{ data: arr, backgroundColor: blueTheme.slice(0, 3), borderWidth: 1 }]
                     },
                     options: {
                         responsive: true,
@@ -619,16 +622,13 @@ fetch('/api/stats?category={{ category }}')
             // ---- Num Units (Quy mô căn hộ) pie charts ----
             const nug = clsData.num_units_grouped || { labels: [], AP: [], OB: [] };
             const nus = clsData.num_units_screens || { labels: [], AP: [], OB: [] };
-            // Tone xanh biển cho 5 options
-            const nuColors = ['#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1e40af'];
-
             function nuPie(canvasId, arr) {
                 if (chartInsts[canvasId]) chartInsts[canvasId].destroy();
                 chartInsts[canvasId] = new Chart(document.getElementById(canvasId), {
                     type: 'pie',
                     data: {
                         labels: nug.labels,
-                        datasets: [{ data: arr, backgroundColor: nuColors, borderWidth: 1 }]
+                        datasets: [{ data: arr, backgroundColor: blueTheme, borderWidth: 1 }]
                     },
                     options: {
                         responsive: true,
