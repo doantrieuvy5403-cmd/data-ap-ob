@@ -255,7 +255,31 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 mb-6">
+<!-- Bảng chú thích chung cho 4 biểu đồ quy mô -->
+<div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-4 fade-in flex flex-wrap justify-center gap-x-6 gap-y-2 mt-8 mb-2">
+    <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full" style="background-color: #93c5fd;"></div>
+        <span class="text-xs text-slate-600 font-semibold">&lt; 300 căn: Chung cư đơn (Single Block)</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full" style="background-color: #60a5fa;"></div>
+        <span class="text-xs text-slate-600 font-semibold">300 - 500 căn: Tiêu chuẩn</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full" style="background-color: #3b82f6;"></div>
+        <span class="text-xs text-slate-600 font-semibold">500 - 800 căn: Khu tổ hợp/ Phức hợp</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full" style="background-color: #2563eb;"></div>
+        <span class="text-xs text-slate-600 font-semibold">800 - 1000 căn: Khu đô thị</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-3.5 h-3.5 rounded-full" style="background-color: #1e40af;"></div>
+        <span class="text-xs text-slate-600 font-semibold">&gt; 1000 căn: Đại đô thị</span>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 mb-6">
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 fade-in flex flex-col items-center">
         <h2 class="text-lg font-bold text-slate-800 w-full mb-2">Quy mô — AP (Căn hộ)</h2>
         <p class="text-sm text-slate-500 w-full mb-4 font-medium italic">Đơn vị: Số lượng Block</p>
@@ -633,10 +657,7 @@ fetch('/api/stats?category={{ category }}')
                     options: {
                         responsive: true,
                         plugins: {
-                            legend: { 
-                                position: 'bottom', 
-                                labels: { font: { size: 11 }, boxWidth: 12, padding: 10 } 
-                            },
+                            legend: { display: false },
                             tooltip: { callbacks: { label: c => `${c.label}: ${c.raw}` } },
                             datalabels: {
                                 color: '#fff', font: { weight: 'bold', size: 11 },
