@@ -1038,11 +1038,11 @@ def api_stats():
     nu_rows = nu_rows.group_by(ApartmentRecord.category, ApartmentRecord.num_units).all()
 
     NU_LABELS = {
-        '<300 căn': 'Chung cư đơn (Single Block)',
-        '300-500 căn': 'Tiêu chuẩn',
-        '500-800 căn': 'Khu tổ hợp/ Phức hợp',
-        '800-1000 căn': 'Khu đô thị',
-        '>1000 căn': 'Đại đô thị'
+        '<300 căn': '< 300 căn: Chung cư đơn (Single Block)',
+        '300-500 căn': '300 - 500 căn: Tiêu chuẩn',
+        '500-800 căn': '500 - 800 căn: Khu tổ hợp/ Phức hợp',
+        '800-1000 căn': '800 - 1000 căn: Khu đô thị',
+        '>1000 căn': '> 1000 căn: Đại đô thị'
     }
     nu_grouped = {'AP': {k: 0 for k in NU_LABELS.values()}, 'OB': {k: 0 for k in NU_LABELS.values()}}
     nu_screens = {'AP': {k: 0 for k in NU_LABELS.values()}, 'OB': {k: 0 for k in NU_LABELS.values()}}
