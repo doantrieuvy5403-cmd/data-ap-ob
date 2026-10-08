@@ -144,17 +144,19 @@ DASHBOARD_PERSONS = [
 ]
 # Per-person screen targets (Deal + Done) — individual AP/OB goals per member
 PERSON_TARGETS = {
-    'Nhiên':    {'ap': 350, 'ob': 60},
-    'Tân':      {'ap': 300, 'ob': 45},
-    'Quỳnh Hà': {'ap': 250, 'ob': 45},
-    'Phú':      {'ap': 250, 'ob': 45},
-    'Phương':   {'ap': 200, 'ob': 20},
-    'Dũng':     {'ap': 300, 'ob': 55},
-    'Mai':      {'ap': 300, 'ob': 50},
-    'Khánh':    {'ap': 250, 'ob': 45},
-    'Quyền':    {'ap': 250, 'ob': 45},
-    'Ngân An':  {'ap': 250, 'ob': 45},
-    'Thuỳ':     {'ap': 300, 'ob': 45},
+    'Nhiên':     {'ap': 300, 'ob': 44},
+    'Tiến Anh':  {'ap': 150, 'ob': 20},
+    'Tân':       {'ap': 300, 'ob': 44},
+    'Quỳnh Hà':  {'ap': 250, 'ob': 44},
+    'Vinh Phú':  {'ap': 250, 'ob': 44},
+    'Phương':    {'ap': 200, 'ob': 20},
+    'Dũng':      {'ap': 300, 'ob': 44},
+    'Khang Phú': {'ap': 150, 'ob': 20},
+    'Mai':       {'ap': 300, 'ob': 44},
+    'Khánh':     {'ap': 250, 'ob': 44},
+    'Quyền':     {'ap': 250, 'ob': 44},
+    'Thuỳ':      {'ap': 300, 'ob': 44},
+    'An':        {'ap': 250, 'ob': 44},
 }
 DEFAULT_TARGET = {'ap': 250, 'ob': 45}  # fallback for any person not listed above
 DEAL_DONE_STAGES = ['Deal', 'Done']
