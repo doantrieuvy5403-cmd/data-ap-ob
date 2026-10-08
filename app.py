@@ -131,16 +131,18 @@ def _derive_region(city):
 # Dashboard: persons in charge — (display name, matching token in data, team)
 DASHBOARD_PERSONS = [
     ('Nhiên', 'NHIÊN', 'Team Nhiên'),
+    ('Tiến Anh', 'TIẾN ANH', 'Team Nhiên'),
     ('Tân', 'TÂN', 'Team Tân'),
     ('Quỳnh Hà', 'QUỲNH HÀ', 'Team Tân'),
-    ('Phú', 'PHÚ', 'Team Tân'),
+    ('Vinh Phú', 'VINH PHÚ', 'Team Tân'),
     ('Phương', 'PHƯƠNG', 'Team Vy'),
     ('Dũng', 'DŨNG', 'Team Dũng'),
+    ('Khang Phú', 'KHANG PHÚ', 'Team Dũng'),
     ('Mai', 'MAI', 'Team Mai'),
     ('Khánh', 'KHÁNH', 'Team Mai'),
     ('Quyền', 'QUYỀN', 'Team Thuỳ'),
-    ('Ngân An', 'AN', 'Team Thuỳ'),
     ('Thuỳ', 'THUỲ', 'Team Thuỳ'),
+    ('An', 'AN', 'Team Thuỳ'),
 ]
 # Per-person screen targets (Deal + Done) — individual AP/OB goals per member
 PERSON_TARGETS = {
