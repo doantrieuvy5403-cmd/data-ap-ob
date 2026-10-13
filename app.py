@@ -128,39 +128,113 @@ def _derive_region(city):
     return 'MB' if any(k in c for k in north) else 'MN'
 
 
-# Dashboard: persons in charge — (display name, matching token in data, team)
+# Dashboard: persons in charge — (display name, matching token(s) in data, team)
 DASHBOARD_PERSONS = [
-    ('Nhiên', 'NHIÊN', 'Team Nhiên'),
-    ('Tiến Anh', 'TIẾN ANH', 'Team Nhiên'),
-    ('Tân', 'TÂN', 'Team Tân'),
-    ('Quỳnh Hà', 'QUỲNH HÀ', 'Team Tân'),
-    ('Vinh Phú', 'VINH PHÚ', 'Team Tân'),
-    ('Phương', 'PHƯƠNG', 'Team Vy'),
-    ('Dũng', 'DŨNG', 'Team Dũng'),
-    ('Khang Phú', 'KHANG PHÚ', 'Team Dũng'),
-    ('Mai', 'MAI', 'Team Mai'),
-    ('Khánh', 'KHÁNH', 'Team Mai'),
-    ('Quyền', 'QUYỀN', 'Team Thuỳ'),
-    ('Thuỳ', 'THUỲ', 'Team Thuỳ'),
-    ('An', 'AN', 'Team Thuỳ'),
+    # Team XUÂN TÂN
+    ('XUÂN TÂN',    ['XUÂN TÂN', 'TÂN'], 'XUÂN TÂN'),
+    ('VINH PHÚ',    ['VINH PHÚ', 'PHÚ'], 'XUÂN TÂN'),
+    ('QUỲNH HÀ',    ['QUỲNH HÀ', 'HÀ'], 'XUÂN TÂN'),
+    # Team YÊN NHIÊN
+    ('YÊN NHIÊN',   ['YÊN NHIÊN', 'NHIÊN'], 'YÊN NHIÊN'),
+    ('TIẾN ANH',    ['TIẾN ANH'], 'YÊN NHIÊN'),
+    ('NHẬT HUY',    ['NHẬT HUY', 'HUY'], 'YÊN NHIÊN'),
+    # Team UYÊN PHƯƠNG
+    ('UYÊN PHƯƠNG', ['UYÊN PHƯƠNG', 'PHƯƠNG'], 'UYÊN PHƯƠNG'),
+    # Team NGỌC DŨNG
+    ('NGỌC DŨNG',   ['NGỌC DŨNG', 'DŨNG'], 'NGỌC DŨNG'),
+    ('KHANG PHÚ',   ['KHANG PHÚ', 'KHANG KHÚ'], 'NGỌC DŨNG'),
+    # Team THANH THUỲ
+    ('THANH THUỲ',  ['THANH THUỲ', 'THUỲ'], 'THANH THUỲ'),
+    ('TRỌNG QUYỀN', ['TRỌNG QUYỀN', 'QUYỀN'], 'THANH THUỲ'),
+    ('NGÂN AN',     ['NGÂN AN', 'AN'], 'THANH THUỲ'),
+    # Team NGỌC MAI
+    ('NGỌC MAI',    ['NGỌC MAI', 'MAI'], 'NGỌC MAI'),
+    ('DUY KHÁNH',   ['DUY KHÁNH', 'KHÁNH'], 'NGỌC MAI'),
 ]
+
+# Danh sách nhân sự chuẩn được phép chọn khi Thêm/Sửa
+ALLOWED_PERSONS = [
+    'YÊN NHIÊN',
+    'TIẾN ANH',
+    'NHẬT HUY',
+    'XUÂN TÂN',
+    'QUỲNH HÀ',
+    'VINH PHÚ',
+    'UYÊN PHƯƠNG',
+    'NGỌC DŨNG',
+    'KHANG PHÚ',
+    'NGỌC MAI',
+    'DUY KHÁNH',
+    'TRỌNG QUYỀN',
+    'THANH THUỲ',
+    'NGÂN AN',
+]
+
+# Bảng quy đổi tên viết tắt / cũ sang tên chính thức
+NORMALIZE_PERSON = {
+    'TÂN': 'XUÂN TÂN',
+    'XUÂN TÂN': 'XUÂN TÂN',
+    'PHÚ': 'VINH PHÚ',
+    'VINH PHÚ': 'VINH PHÚ',
+    'QUỲNH HÀ': 'QUỲNH HÀ',
+    'HÀ': 'QUỲNH HÀ',
+    'NHIÊN': 'YÊN NHIÊN',
+    'YÊN NHIÊN': 'YÊN NHIÊN',
+    'TIẾN ANH': 'TIẾN ANH',
+    'NHẬT HUY': 'NHẬT HUY',
+    'HUY': 'NHẬT HUY',
+    'PHƯƠNG': 'UYÊN PHƯƠNG',
+    'UYÊN PHƯƠNG': 'UYÊN PHƯƠNG',
+    'DŨNG': 'NGỌC DŨNG',
+    'NGỌC DŨNG': 'NGỌC DŨNG',
+    'KHANG PHÚ': 'KHANG PHÚ',
+    'KHANG KHÚ': 'KHANG PHÚ',
+    'MAI': 'NGỌC MAI',
+    'NGỌC MAI': 'NGỌC MAI',
+    'KHÁNH': 'DUY KHÁNH',
+    'DUY KHÁNH': 'DUY KHÁNH',
+    'QUYỀN': 'TRỌNG QUYỀN',
+    'TRỌNG QUYỀN': 'TRỌNG QUYỀN',
+    'THUỲ': 'THANH THUỲ',
+    'THANH THUỲ': 'THANH THUỲ',
+    'AN': 'NGÂN AN',
+    'NGÂN AN': 'NGÂN AN',
+}
+
 # Per-person screen targets (Deal + Done) — individual AP/OB goals per member
 PERSON_TARGETS = {
-    'Nhiên':     {'ap': 300, 'ob': 44},
-    'Tiến Anh':  {'ap': 150, 'ob': 20},
-    'Tân':       {'ap': 300, 'ob': 44},
-    'Quỳnh Hà':  {'ap': 250, 'ob': 44},
-    'Vinh Phú':  {'ap': 250, 'ob': 44},
-    'Phương':    {'ap': 200, 'ob': 20},
-    'Dũng':      {'ap': 300, 'ob': 44},
-    'Khang Phú': {'ap': 150, 'ob': 20},
-    'Mai':       {'ap': 300, 'ob': 44},
-    'Khánh':     {'ap': 250, 'ob': 44},
-    'Quyền':     {'ap': 250, 'ob': 44},
-    'Thuỳ':      {'ap': 300, 'ob': 44},
-    'An':        {'ap': 250, 'ob': 44},
+    'XUÂN TÂN':    {'ap': 300, 'ob': 44},
+    'VINH PHÚ':    {'ap': 250, 'ob': 44},
+    'QUỲNH HÀ':    {'ap': 250, 'ob': 44},
+    'YÊN NHIÊN':   {'ap': 300, 'ob': 44},
+    'TIẾN ANH':    {'ap': 150, 'ob': 20},
+    'NHẬT HUY':    {'ap': 0, 'ob': 0},
+    'UYÊN PHƯƠNG': {'ap': 200, 'ob': 20},
+    'NGỌC DŨNG':   {'ap': 300, 'ob': 44},
+    'KHANG PHÚ':   {'ap': 150, 'ob': 20},
+    'THANH THUỲ':  {'ap': 300, 'ob': 44},
+    'TRỌNG QUYỀN': {'ap': 250, 'ob': 44},
+    'NGÂN AN':     {'ap': 250, 'ob': 44},
+    'NGỌC MAI':    {'ap': 300, 'ob': 44},
+    'DUY KHÁNH':   {'ap': 250, 'ob': 44},
 }
-DEFAULT_TARGET = {'ap': 250, 'ob': 45}  # fallback for any person not listed above
+# Fallback for short names
+PERSON_TARGETS.update({
+    'Tân': {'ap': 300, 'ob': 44},
+    'Vinh Phú': {'ap': 250, 'ob': 44},
+    'Quỳnh Hà': {'ap': 250, 'ob': 44},
+    'Nhiên': {'ap': 300, 'ob': 44},
+    'Tiến Anh': {'ap': 150, 'ob': 20},
+    'Phương': {'ap': 200, 'ob': 20},
+    'Dũng': {'ap': 300, 'ob': 44},
+    'Khang Phú': {'ap': 150, 'ob': 20},
+    'Thuỳ': {'ap': 300, 'ob': 44},
+    'Quyền': {'ap': 250, 'ob': 44},
+    'An': {'ap': 250, 'ob': 44},
+    'Mai': {'ap': 300, 'ob': 44},
+    'Khánh': {'ap': 250, 'ob': 44},
+})
+DEFAULT_TARGET = {'ap': 0, 'ob': 0}
 DEAL_DONE_STAGES = ['Deal', 'Done']
 # Sales funnel stages in order + completion weight for progress %
 FUNNEL_STAGES = ['Research', 'Plan B', 'Plan A', 'Deal', 'Done']
@@ -216,27 +290,36 @@ def _compute_person_progress(category=None):
     funnel), and screen-progress % (Deal+Done screens vs per-person target,
     AP and OB weighted equally). Always computed across all categories so the
     AP/OB targets line up regardless of the dashboard category filter.
+    LƯU Ý: Chỉ lấy dữ liệu ở Người PT1 theo yêu cầu.
     """
     persons = DASHBOARD_PERSONS
 
     counts = {disp: {stage: 0 for stage in FUNNEL_STAGES} for disp, _, _ in persons}
     ap_screens = {disp: 0 for disp, _, _ in persons}
     ob_screens = {disp: 0 for disp, _, _ in persons}
-    token_to_disp = {token: disp for disp, token, _ in persons}
+    
+    token_to_disp = {}
+    for disp, tokens, _ in persons:
+        if isinstance(tokens, list):
+            for tok in tokens:
+                token_to_disp[tok.upper()] = disp
+        else:
+            token_to_disp[tokens.upper()] = disp
+        token_to_disp[disp.upper()] = disp
 
-    # Project counts across funnel stages
+    # Project counts across funnel stages (chỉ lấy Người PT1)
     for person, status in db.session.query(
         ApartmentRecord.person_in_charge, ApartmentRecord.status
     ).filter(
         ApartmentRecord.person_in_charge.isnot(None),
         ApartmentRecord.status.in_(FUNNEL_STAGES)
     ).all():
-        for tok in str(person).split(','):
-            disp = token_to_disp.get(tok.strip().upper())
-            if disp:
-                counts[disp][status] += 1
+        pt1 = str(person).split(',')[0].strip().upper()
+        disp = token_to_disp.get(pt1)
+        if disp:
+            counts[disp][status] += 1
 
-    # Screen achievements (Deal + Done) split by category
+    # Screen achievements (Deal + Done) split by category (chỉ lấy Người PT1)
     for person, cat, screens in db.session.query(
         ApartmentRecord.person_in_charge, ApartmentRecord.category, ApartmentRecord.total_screens
     ).filter(
@@ -246,13 +329,13 @@ def _compute_person_progress(category=None):
     ).all():
         if not screens:
             continue
-        for tok in str(person).split(','):
-            disp = token_to_disp.get(tok.strip().upper())
-            if disp:
-                if cat == 'AP':
-                    ap_screens[disp] += int(screens)
-                elif cat == 'OB':
-                    ob_screens[disp] += int(screens)
+        pt1 = str(person).split(',')[0].strip().upper()
+        disp = token_to_disp.get(pt1)
+        if disp:
+            if cat == 'AP':
+                ap_screens[disp] += int(screens)
+            elif cat == 'OB':
+                ob_screens[disp] += int(screens)
 
     result = []
     for disp, _, team in persons:
@@ -504,8 +587,13 @@ def _valid_cat_region(category, region):
 
 def _join_persons(form):
     """Combine PT1/PT2/PT3 inputs into a single comma-separated string."""
-    parts = [form.get(f'pt{i}', '').strip() for i in (1, 2, 3)]
-    joined = ', '.join(p for p in parts if p)
+    parts = []
+    for i in (1, 2, 3):
+        val = form.get(f'pt{i}', '').strip()
+        if val:
+            val = NORMALIZE_PERSON.get(val.upper(), val)
+            parts.append(val)
+    joined = ', '.join(parts)
     return joined or None
 
 
@@ -541,7 +629,12 @@ def database(category, region):
 
     person = request.args.get('person')
     if person:
-        query = query.filter_by(person_in_charge=person)
+        tokens = [person]
+        for k, v in NORMALIZE_PERSON.items():
+            if v == person.upper() and k not in tokens:
+                tokens.append(k)
+        conditions = [ApartmentRecord.person_in_charge.contains(tok) for tok in tokens]
+        query = query.filter(db.or_(*conditions))
 
     city = request.args.get('city')
     if city:
@@ -572,7 +665,6 @@ def database(category, region):
     # Get filter options (scoped to this category + region)
     opt = lambda col: db.session.query(col).filter_by(category=category, region=region).distinct().all()
     statuses = opt(ApartmentRecord.status)
-    persons = opt(ApartmentRecord.person_in_charge)
     cities = opt(ApartmentRecord.city)
     classifications = opt(ApartmentRecord.classification)
     districts = opt(ApartmentRecord.district)
@@ -583,7 +675,7 @@ def database(category, region):
                          region=region,
                          records=records,
                          statuses=[s[0] for s in statuses if s[0]],
-                         persons=[p[0] for p in persons if p[0]],
+                         persons=ALLOWED_PERSONS,
                          cities=[c[0] for c in cities if c[0]],
                          classifications=[c[0] for c in classifications if c[0]],
                          districts=sorted([d[0] for d in districts if d[0]]),
@@ -661,7 +753,18 @@ def add_record(category, region):
         category=category, region=region).scalar()
     next_stt = (max_stt or 0) + 1
     next_url = request.args.get('next')
-    return render_template('add_edit.html', category=category, region=region, record=None, next_stt=next_stt, next_url=next_url)
+    return render_template(
+        'add_edit.html',
+        category=category,
+        region=region,
+        record=None,
+        next_stt=next_stt,
+        next_url=next_url,
+        allowed_persons=ALLOWED_PERSONS,
+        pt1_val='',
+        pt2_val='',
+        pt3_val=''
+    )
 
 
 @app.route('/record/<int:id>/edit', methods=['GET', 'POST'])
@@ -716,7 +819,21 @@ def edit_record(id):
         return redirect(url_for('database', category=record.category.lower(), region=record.region.lower()))
 
     next_url = request.args.get('next')
-    return render_template('add_edit.html', category=record.category, region=record.region, record=record, next_url=next_url)
+    pts = [p.strip() for p in str(record.person_in_charge or '').split(',') if p.strip()]
+    pt1_val = NORMALIZE_PERSON.get(pts[0].upper(), pts[0]) if len(pts) > 0 else ''
+    pt2_val = NORMALIZE_PERSON.get(pts[1].upper(), pts[1]) if len(pts) > 1 else ''
+    pt3_val = NORMALIZE_PERSON.get(pts[2].upper(), pts[2]) if len(pts) > 2 else ''
+    return render_template(
+        'add_edit.html',
+        category=record.category,
+        region=record.region,
+        record=record,
+        next_url=next_url,
+        allowed_persons=ALLOWED_PERSONS,
+        pt1_val=pt1_val,
+        pt2_val=pt2_val,
+        pt3_val=pt3_val
+    )
 
 
 @app.route('/record/<int:id>/delete', methods=['POST'])
@@ -1343,11 +1460,13 @@ def import_data(category, region):
                 if c in df.columns and pd.notna(row.get(c)):
                     t = str(row[c]).strip()
                     if t:
+                        t = NORMALIZE_PERSON.get(t.upper(), t)
                         pts.append(t)
             if pts:
                 record.person_in_charge = ', '.join(pts)
             elif 'NS. Phụ trách' in df.columns and pd.notna(row.get('NS. Phụ trách')):
-                record.person_in_charge = str(row['NS. Phụ trách']).strip()
+                t = str(row['NS. Phụ trách']).strip()
+                record.person_in_charge = NORMALIZE_PERSON.get(t.upper(), t)
                 
             if record.status in ('Deal', 'Done'):
                 if not record.install_date:

@@ -74,28 +74,49 @@
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6">
         <div class="mb-6">
             <h2 class="text-lg font-bold text-slate-800">Người phụ trách</h2>
-            <p class="text-xs text-slate-400 mt-1">Nhân sự phụ trách theo dõi record</p>
+            <p class="text-xs text-slate-400 mt-1">Nhân sự phụ trách theo dõi record (Chỉ Người PT1 được tính chỉ tiêu / Target KPI)</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Person in charge 1 -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Người PT1</label>
-                <input type="text" name="pt1" value="{{ pts[0]|trim if pts|length > 0 else '' }}"
-                       class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Người PT1 <span class="text-indigo-600 font-bold">* (Tính KPI)</span></label>
+                <select name="pt1" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">-- Chọn Người PT1 --</option>
+                    {% for p in allowed_persons %}
+                        <option value="{{ p }}" {% if pt1_val == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                    {% if pt1_val and pt1_val not in allowed_persons %}
+                        <option value="{{ pt1_val }}" selected>{{ pt1_val }} (Giá trị cũ)</option>
+                    {% endif %}
+                </select>
             </div>
 
             <!-- Person in charge 2 -->
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Người PT2</label>
-                <input type="text" name="pt2" value="{{ pts[1]|trim if pts|length > 1 else '' }}"
-                       class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                <select name="pt2" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">-- Không có / Chọn PT2 --</option>
+                    {% for p in allowed_persons %}
+                        <option value="{{ p }}" {% if pt2_val == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                    {% if pt2_val and pt2_val not in allowed_persons %}
+                        <option value="{{ pt2_val }}" selected>{{ pt2_val }} (Giá trị cũ)</option>
+                    {% endif %}
+                </select>
             </div>
 
             <!-- Person in charge 3 -->
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Người PT3</label>
-                <input type="text" name="pt3" value="{{ pts[2]|trim if pts|length > 2 else '' }}"
-                       class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                <select name="pt3" class="w-full rounded-xl border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                    <option value="">-- Không có / Chọn PT3 --</option>
+                    {% for p in allowed_persons %}
+                        <option value="{{ p }}" {% if pt3_val == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                    {% if pt3_val and pt3_val not in allowed_persons %}
+                        <option value="{{ pt3_val }}" selected>{{ pt3_val }} (Giá trị cũ)</option>
+                    {% endif %}
+                </select>
             </div>
         </div>
     </div>
